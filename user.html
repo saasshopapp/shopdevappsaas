@@ -278,7 +278,6 @@
                                             <td class="px-4 py-3" x-text="money(payment.amount)"></td>
                                             <td class="px-4 py-3">
                                                 <span :class="badgeClass(payment.status)" class="rounded-full px-2 py-1 text-xs font-medium" x-text="label(payment.status)"></span>
-                                                <p x-show="payment.status === 'ditolak' && payment.admin_note" class="mt-2 max-w-[280px] text-xs leading-5 text-red-700" x-text="payment.admin_note"></p>
                                             </td>
                                             <td class="px-4 py-3" x-text="date(payment.submitted_at || payment.created_at)"></td>
                                             <td class="px-4 py-3">
@@ -539,7 +538,12 @@
             <div role="dialog" aria-modal="true"
                 class="h-full max-h-none w-full overflow-y-auto rounded-none bg-white p-5 shadow-lg sm:h-auto sm:max-h-[92vh] sm:max-w-2xl sm:rounded-lg">
                 <div class="mb-4 flex items-center justify-between gap-3">
-                    <h3 class="text-lg font-semibold">Detail Transaksi</h3>
+                    <div class="min-w-0">
+                        <h3 class="text-lg font-semibold">Detail Transaksi</h3>
+                        <p class="truncate text-sm text-zinc-500" x-text="selectedPayment?.payment_code || ''"></p>
+                    </div>
+                    <span x-show="selectedPayment" :class="badgeClass(selectedPayment?.status)" class="ml-auto hidden shrink-0 rounded-full px-2 py-1 text-xs font-medium sm:inline-flex"
+                        x-text="label(selectedPayment?.status)"></span>
                     <button type="button" @click="closePaymentDetail" class="grid h-9 w-9 place-items-center rounded-md border border-zinc-300 hover:bg-zinc-50" aria-label="Tutup detail">
                         <i data-lucide="x" class="h-4 w-4"></i>
                     </button>
@@ -547,17 +551,11 @@
 
                 <template x-if="selectedPayment">
                     <div class="space-y-4">
-                        <div class="rounded-md border border-zinc-200 bg-zinc-50 p-4">
-                            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                <div class="min-w-0">
-                                    <p class="text-sm text-zinc-500">Kode transaksi</p>
-                                    <p class="mt-1 break-all text-lg font-semibold" x-text="selectedPayment.payment_code"></p>
-                                </div>
-                                <span :class="badgeClass(selectedPayment.status)" class="w-fit rounded-full px-2 py-1 text-xs font-medium" x-text="label(selectedPayment.status)"></span>
-                            </div>
-                        </div>
-
                         <div class="grid gap-3 text-sm sm:grid-cols-2">
+                            <div class="sm:hidden">
+                                <p class="text-xs uppercase text-zinc-500">Status</p>
+                                <span :class="badgeClass(selectedPayment.status)" class="mt-1 inline-flex rounded-full px-2 py-1 text-xs font-medium" x-text="label(selectedPayment.status)"></span>
+                            </div>
                             <div>
                                 <p class="text-xs uppercase text-zinc-500">Paket</p>
                                 <p class="font-medium" x-text="selectedPayment.plan_name || '-'"></p>
@@ -605,11 +603,22 @@
 
                         <div class="flex flex-col-reverse gap-2 border-t border-zinc-200 pt-4 sm:flex-row sm:justify-end">
                             <button type="button" @click="closePaymentDetail" class="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50">Tutup</button>
-                            <a x-show="selectedPayment.has_proof_file" :href="proofLink(selectedPayment.id)" target="_blank" rel="noopener"
+                            <button x-show="selectedPayment.has_proof_file" type="button" @click="toggleProofPreview"
                                 class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
                                 <i data-lucide="file-search" class="h-4 w-4"></i>
-                                Lihat Bukti
-                            </a>
+                                <span x-text="proofPreviewOpen ? 'Tutup Bukti' : 'Bukti Transfer'"></span>
+                            </button>
+                        </div>
+
+                        <div x-show="proofPreviewOpen && selectedPayment.has_proof_file" x-transition.opacity class="rounded-md border border-zinc-200 bg-zinc-50 p-3">
+                            <div class="mb-3 flex items-center justify-between gap-3">
+                                <h4 class="font-semibold">Bukti Transfer</h4>
+                                <button type="button" @click="proofPreviewOpen = false" class="grid h-8 w-8 place-items-center rounded-md border border-zinc-300 bg-white hover:bg-zinc-50" aria-label="Tutup bukti">
+                                    <i data-lucide="x" class="h-4 w-4"></i>
+                                </button>
+                            </div>
+                            <iframe :src="proofLink(selectedPayment.id)" title="Bukti transfer"
+                                class="h-[70vh] w-full rounded-md border border-zinc-200 bg-white"></iframe>
                         </div>
                     </div>
                 </template>
@@ -651,6 +660,7 @@
                 formModal: { open: false, type: '' },
                 paymentDetailOpen: false,
                 selectedPayment: null,
+                proofPreviewOpen: false,
 
                 async init() {
                     await this.checkSession();
@@ -747,12 +757,18 @@
                 },
                 openPaymentDetail(payment) {
                     this.selectedPayment = payment;
+                    this.proofPreviewOpen = false;
                     this.paymentDetailOpen = true;
                     this.refreshIcons();
                 },
                 closePaymentDetail() {
                     this.paymentDetailOpen = false;
                     this.selectedPayment = null;
+                    this.proofPreviewOpen = false;
+                },
+                toggleProofPreview() {
+                    this.proofPreviewOpen = !this.proofPreviewOpen;
+                    this.refreshIcons();
                 },
                 async api(action, options = {}) {
                     const response = await fetch(this.apiBase + action, {
