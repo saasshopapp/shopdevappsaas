@@ -470,7 +470,7 @@
 
                     <label class="block">
                         <span class="text-sm font-medium">Bukti transfer</span>
-                        <input x-ref="paymentProofInput" @change="setProofFile($event)" type="file" accept=".jpg,.jpeg,.png,.pdf"
+                        <input x-ref="paymentProofInput" @change="setProofFile($event)" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png"
                             class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
                         <span x-show="proofFileName" class="mt-1 block text-xs text-zinc-500" x-text="proofFileName"></span>
                     </label>
@@ -616,21 +616,14 @@
 
         <div x-show="proofPreviewOpen && selectedPayment?.has_proof_file" x-transition.opacity
             @click.self="closeProofPreview" @keydown.escape.window="closeProofPreview"
-            class="fixed inset-0 z-[60] grid place-items-stretch bg-black/45 p-0 backdrop-blur-sm sm:place-items-center sm:p-4" style="display: none;">
-            <div role="dialog" aria-modal="true"
-                class="flex h-full max-h-none w-full flex-col overflow-hidden rounded-none bg-white shadow-lg sm:h-[92vh] sm:max-w-4xl sm:rounded-lg">
-                <div class="flex items-center justify-between gap-3 border-b border-zinc-200 px-4 py-3">
-                    <div class="min-w-0">
-                        <h3 class="font-semibold">Bukti Transfer</h3>
-                        <p class="truncate text-sm text-zinc-500" x-text="selectedPayment?.payment_code || ''"></p>
-                    </div>
-                    <button type="button" @click="closeProofPreview" class="grid h-9 w-9 place-items-center rounded-md border border-zinc-300 hover:bg-zinc-50" aria-label="Tutup bukti">
-                        <i data-lucide="x" class="h-4 w-4"></i>
-                    </button>
-                </div>
-                <iframe :src="selectedPayment ? proofLink(selectedPayment.id) : ''" title="Bukti transfer"
-                    class="min-h-0 flex-1 w-full border-0 bg-white"></iframe>
-            </div>
+            class="fixed inset-0 z-[60] grid place-items-center bg-black/60 p-4 backdrop-blur-sm" style="display: none;">
+            <button type="button" @click="closeProofPreview"
+                class="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-white/95 text-zinc-800 shadow-lg hover:bg-white"
+                aria-label="Tutup bukti">
+                <i data-lucide="x" class="h-5 w-5"></i>
+            </button>
+            <img :src="selectedPayment ? proofLink(selectedPayment.id) : ''" alt="Bukti transfer"
+                class="max-h-[92vh] max-w-full object-contain shadow-2xl">
         </div>
     </main>
 
@@ -915,6 +908,13 @@
                 },
                 setProofFile(event) {
                     const file = event.target.files[0] || null;
+                    if (file && !['image/jpeg', 'image/png'].includes(file.type)) {
+                        this.paymentForm.proof_file = null;
+                        this.proofFileName = '';
+                        event.target.value = '';
+                        this.setError('Bukti transfer harus berupa gambar JPG atau PNG.', this.tab);
+                        return;
+                    }
                     this.paymentForm.proof_file = file;
                     this.proofFileName = file ? file.name : '';
                 },
