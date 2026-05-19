@@ -18,7 +18,21 @@
 </head>
 
 <body class="min-h-screen bg-zinc-100 text-zinc-900">
-    <main x-data="userDashboard()" x-init="init()" x-cloak class="min-h-screen">
+    <main x-data="userDashboard()" x-init="init()" @toast.window="addToast($event.detail)" x-cloak class="min-h-screen">
+        <div class="fixed right-4 top-4 z-[80] flex w-[calc(100%-2rem)] max-w-sm flex-col gap-2" aria-live="polite" aria-atomic="true">
+            <template x-for="toast in toasts" :key="toast.id">
+                <div x-transition
+                    class="flex items-start gap-3 rounded-md border bg-white p-3 text-sm shadow-lg"
+                    :class="toast.type === 'error' ? 'border-red-200 text-red-800' : 'border-emerald-200 text-emerald-800'">
+                    <i :data-lucide="toast.type === 'error' ? 'circle-alert' : 'circle-check'" class="mt-0.5 h-4 w-4 shrink-0"></i>
+                    <p class="min-w-0 flex-1 leading-5" x-text="toast.message"></p>
+                    <button type="button" @click="removeToast(toast.id)" class="grid h-6 w-6 shrink-0 place-items-center rounded-md hover:bg-zinc-100" aria-label="Tutup notifikasi">
+                        <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                    </button>
+                </div>
+            </template>
+        </div>
+
         <section x-show="currentUser" class="min-h-screen lg:block">
             <header class="sticky top-0 z-40 flex items-center justify-between border-b border-zinc-200 bg-white px-4 py-3 lg:hidden">
                 <button type="button" @click="sidebarOpen = true"
@@ -78,11 +92,6 @@
                 <div class="mb-4 min-w-0">
                     <h2 class="text-xl font-semibold" x-text="activeTitle()"></h2>
                 </div>
-
-                <div x-show="message && messageTab === tab" role="status" aria-live="polite" class="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800"
-                    x-text="message"></div>
-                <div x-show="error && errorTab === tab" role="alert" class="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
-                    x-text="error"></div>
 
                 <section x-show="tab === 'overview'" class="space-y-4">
                     <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -643,10 +652,8 @@
                 payments: [],
                 guestPage: null,
                 tab: 'overview',
-                message: '',
-                messageTab: '',
-                error: '',
-                errorTab: '',
+                toasts: [],
+                toastId: 0,
                 nav: [
                     { key: 'overview', label: 'Dashboard', icon: 'layout-dashboard' },
                     { key: 'profile', label: 'Profil', icon: 'user' },
@@ -673,19 +680,32 @@
                 activeTitle() {
                     return this.nav.find(item => item.key === this.tab)?.label || 'Dashboard';
                 },
+                notify(type, message) {
+                    if (!message) return;
+                    window.dispatchEvent(new CustomEvent('toast', {
+                        detail: { type, message },
+                    }));
+                },
+                addToast(detail) {
+                    const toast = {
+                        id: ++this.toastId,
+                        type: detail?.type === 'error' ? 'error' : 'success',
+                        message: detail?.message || 'Berhasil.',
+                    };
+                    this.toasts.push(toast);
+                    this.refreshIcons();
+                    window.setTimeout(() => this.removeToast(toast.id), detail?.duration || 4200);
+                },
+                removeToast(id) {
+                    this.toasts = this.toasts.filter(toast => toast.id !== id);
+                },
                 setMessage(message, tab = this.tab) {
-                    this.message = message;
-                    this.messageTab = tab;
+                    this.notify('success', message);
                 },
                 setError(message, tab = this.tab) {
-                    this.error = message;
-                    this.errorTab = tab;
+                    this.notify('error', message);
                 },
                 clearNotice(tab = this.tab) {
-                    this.message = '';
-                    this.error = '';
-                    this.messageTab = tab;
-                    this.errorTab = tab;
                 },
                 switchTab(key) {
                     this.tab = key;
