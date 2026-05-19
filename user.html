@@ -224,7 +224,8 @@
                                     <ol class="mt-2 list-decimal space-y-1 pl-4 text-zinc-600">
                                         <li>Buka Telegram dan cari <span class="font-medium text-zinc-900">@danicodex_bot</span>.</li>
                                         <li>Kirim pesan <span class="font-medium text-zinc-900">/start</span>.</li>
-                                        <li>Salin Chat ID dari balasan bot, lalu isi lewat tombol Edit Chat ID.</li>
+                                        <li>Kirim pesan random ke bot.</li>
+                                        <li>Hubungi admin dan sebutkan nama atau user Telegram kamu agar admin memberikan ID Telegram kamu.</li>
                                     </ol>
                                 </div>
                             </div>
@@ -244,7 +245,9 @@
                                 <div>
                                     <p class="text-xs uppercase text-zinc-500">Link</p>
                                     <div class="mt-1 flex gap-2">
-                                        <p class="min-w-0 flex-1 truncate rounded-md bg-zinc-50 px-3 py-2" x-text="guestPage?.link || '-'"></p>
+                                        <div class="min-w-0 flex-1 overflow-hidden rounded-md bg-zinc-50 px-3 py-2">
+                                            <p class="truncate" x-text="guestPage?.link || '-'"></p>
+                                        </div>
                                         <button type="button" @click="copyGuestLink" class="grid h-10 w-10 shrink-0 place-items-center rounded-md border border-zinc-300 hover:bg-zinc-50" title="Salin link" aria-label="Salin link">
                                             <i data-lucide="copy" class="h-4 w-4"></i>
                                         </button>
