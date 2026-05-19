@@ -199,111 +199,93 @@
 
                 <section x-show="tab === 'subscriptions'" class="space-y-4">
                     <div class="rounded-lg border border-zinc-200 bg-white p-4">
-                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                            <h3 class="font-semibold">Status Langganan</h3>
-                            <button @click="loadDashboard"
-                                class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50">
-                                <i data-lucide="refresh-cw" class="h-4 w-4"></i>
-                                Muat ulang
-                            </button>
-                        </div>
-                        <div class="mt-3 grid gap-3 sm:grid-cols-3">
-                            <div>
-                                <p class="text-xs uppercase text-zinc-500">Status</p>
-                                <p class="font-semibold" x-text="label(subscription.status)"></p>
+                        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                            <div class="min-w-0">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h3 class="font-semibold">Status Langganan</h3>
+                                    <span :class="badgeClass(subscription.status)" class="rounded-full px-2 py-1 text-xs font-medium" x-text="label(subscription.status)"></span>
+                                </div>
+                                <p class="mt-2 text-2xl font-semibold" x-text="subscription.has_active_subscription ? date(subscription.active_until) : 'Belum aktif'"></p>
+                                <p class="mt-1 text-sm text-zinc-500" x-text="subscriptionHint()"></p>
                             </div>
-                            <div>
-                                <p class="text-xs uppercase text-zinc-500">Aktif sampai</p>
-                                <p class="font-semibold" x-text="date(subscription.active_until)"></p>
-                            </div>
-                            <div>
-                                <p class="text-xs uppercase text-zinc-500">Fitur utama</p>
-                                <p class="font-semibold" x-text="subscription.has_active_subscription ? 'Tersedia' : 'Terbatas'"></p>
+                            <div class="flex flex-col gap-2 sm:flex-row lg:justify-end">
+                                <button type="button" @click="scrollToPlans"
+                                    class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
+                                    <i data-lucide="credit-card" class="h-4 w-4"></i>
+                                    <span x-text="subscriptionCtaLabel()"></span>
+                                </button>
+                                <button type="button" @click="loadDashboard"
+                                    class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50">
+                                    <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                                    Muat ulang
+                                </button>
                             </div>
                         </div>
                     </div>
 
-                    <div class="grid gap-3 md:grid-cols-3">
-                        <template x-for="plan in plans" :key="plan.id">
-                            <button type="button" @click="openCreatePayment(plan.id)"
-                                class="rounded-lg border border-zinc-200 bg-white p-4 text-left hover:border-cyan-500">
-                                <p class="font-semibold" x-text="plan.name"></p>
-                                <p class="mt-1 text-sm text-zinc-500" x-text="`${plan.duration_days} hari`"></p>
-                                <p class="mt-3 text-lg font-semibold" x-text="money(plan.price)"></p>
-                            </button>
-                        </template>
-                    </div>
-
-                    <div class="rounded-lg border border-zinc-200 bg-white">
-                        <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                            <h3 class="font-semibold">Riwayat Langganan</h3>
+                    <div x-ref="plansSection" class="rounded-lg border border-zinc-200 bg-white">
+                        <div class="border-b border-zinc-200 px-4 py-3">
+                            <h3 class="font-semibold">Pilih Paket</h3>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full min-w-[700px] text-left text-sm">
-                                <thead class="bg-zinc-50 text-xs uppercase text-zinc-500">
-                                    <tr>
-                                        <th class="px-4 py-3">Paket</th>
-                                        <th class="px-4 py-3">Status</th>
-                                        <th class="px-4 py-3">Mulai</th>
-                                        <th class="px-4 py-3">Berakhir</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <template x-for="item in subscriptions" :key="item.id">
-                                        <tr class="border-t border-zinc-100">
-                                            <td class="px-4 py-3" x-text="item.plan_name"></td>
-                                            <td class="px-4 py-3"><span :class="badgeClass(item.status)" class="rounded-full px-2 py-1 text-xs font-medium" x-text="label(item.status)"></span></td>
-                                            <td class="px-4 py-3" x-text="date(item.started_at)"></td>
-                                            <td class="px-4 py-3" x-text="date(item.ended_at)"></td>
-                                        </tr>
-                                    </template>
-                                </tbody>
-                            </table>
+                        <div class="grid gap-3 p-4 md:grid-cols-3">
+                            <template x-for="plan in plans" :key="plan.id">
+                                <div class="flex min-h-[168px] flex-col rounded-lg border border-zinc-200 p-4">
+                                    <div class="min-w-0 flex-1">
+                                        <p class="font-semibold" x-text="plan.name"></p>
+                                        <p class="mt-1 text-sm text-zinc-500" x-text="`${plan.duration_days} hari`"></p>
+                                        <p class="mt-3 text-lg font-semibold" x-text="money(plan.price)"></p>
+                                    </div>
+                                    <button type="button" @click="openCreatePayment(plan.id)"
+                                        class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-md bg-cyan-700 px-3 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
+                                        <i data-lucide="check" class="h-4 w-4"></i>
+                                        Pilih Paket
+                                    </button>
+                                </div>
+                            </template>
                         </div>
-                        <div x-show="subscriptions.length === 0" class="px-4 py-8 text-sm text-zinc-500">Belum ada langganan aktif.</div>
+                        <div x-show="plans.length === 0" class="px-4 pb-4 text-sm text-zinc-500">Belum ada paket aktif.</div>
                     </div>
 
                     <div class="rounded-lg border border-zinc-200 bg-white">
                         <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                            <h3 class="font-semibold">Riwayat Pembayaran</h3>
-                            <button @click="loadDashboard"
+                            <h3 class="font-semibold">Riwayat Transaksi</h3>
+                            <button type="button" @click="loadDashboard"
                                 class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50">
                                 <i data-lucide="refresh-cw" class="h-4 w-4"></i>
                                 Muat ulang
                             </button>
                         </div>
                         <div class="overflow-x-auto">
-                            <table class="w-full min-w-[860px] text-left text-sm">
+                            <table class="w-full min-w-[720px] text-left text-sm">
                                 <thead class="bg-zinc-50 text-xs uppercase text-zinc-500">
                                     <tr>
                                         <th class="px-4 py-3">Kode</th>
                                         <th class="px-4 py-3">Paket</th>
                                         <th class="px-4 py-3">Nominal</th>
-                                        <th class="px-4 py-3">Rekening</th>
                                         <th class="px-4 py-3">Status</th>
-                                        <th class="px-4 py-3">Catatan admin</th>
-                                        <th class="px-4 py-3">Dibuat</th>
+                                        <th class="px-4 py-3">Tanggal</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <template x-for="payment in payments" :key="payment.id">
-                                        <tr class="border-t border-zinc-100">
+                                        <tr class="border-t border-zinc-100 align-top">
                                             <td class="px-4 py-3 font-medium" x-text="payment.payment_code"></td>
-                                            <td class="px-4 py-3" x-text="payment.plan_name"></td>
+                                            <td class="px-4 py-3">
+                                                <p x-text="payment.plan_name"></p>
+                                                <p class="text-xs text-zinc-500" x-text="`${payment.duration_days || 0} hari`"></p>
+                                            </td>
                                             <td class="px-4 py-3" x-text="money(payment.amount)"></td>
                                             <td class="px-4 py-3">
-                                                <p x-text="payment.bank_name"></p>
-                                                <p class="text-xs text-zinc-500" x-text="payment.account_number"></p>
+                                                <span :class="badgeClass(payment.status)" class="rounded-full px-2 py-1 text-xs font-medium" x-text="label(payment.status)"></span>
+                                                <p x-show="payment.status === 'ditolak' && payment.admin_note" class="mt-2 max-w-[280px] text-xs leading-5 text-red-700" x-text="payment.admin_note"></p>
                                             </td>
-                                            <td class="px-4 py-3"><span :class="badgeClass(payment.status)" class="rounded-full px-2 py-1 text-xs font-medium" x-text="label(payment.status)"></span></td>
-                                            <td class="px-4 py-3" x-text="payment.admin_note || '-'"></td>
-                                            <td class="px-4 py-3" x-text="date(payment.created_at)"></td>
+                                            <td class="px-4 py-3" x-text="date(payment.submitted_at || payment.created_at)"></td>
                                         </tr>
                                     </template>
                                 </tbody>
                             </table>
                         </div>
-                        <div x-show="payments.length === 0" class="px-4 py-8 text-sm text-zinc-500">Belum ada pembayaran.</div>
+                        <div x-show="payments.length === 0" class="px-4 py-8 text-sm text-zinc-500">Belum ada transaksi.</div>
                     </div>
                 </section>
 
@@ -435,22 +417,12 @@
                     </label>
                     <label class="block">
                         <span class="text-sm font-medium">Rekening tujuan</span>
-                        <select x-model.number="paymentForm.bank_account_id" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                        <select x-model.number="paymentForm.bank_account_id" @change="refreshIcons" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
                             <option value="">Pilih rekening</option>
                             <template x-for="bank in bankAccounts" :key="bank.id">
                                 <option :value="bank.id" x-text="`${bank.bank_name} - ${bank.account_number}`"></option>
                             </template>
                         </select>
-                    </label>
-                    <label class="block sm:col-span-2">
-                        <span class="text-sm font-medium">Bukti transfer</span>
-                        <input x-ref="paymentProofInput" @change="setProofFile($event)" type="file" accept=".jpg,.jpeg,.png,.pdf"
-                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
-                        <span x-show="proofFileName" class="mt-1 block text-xs text-zinc-500" x-text="proofFileName"></span>
-                    </label>
-                    <label class="block sm:col-span-2">
-                        <span class="text-sm font-medium">Catatan</span>
-                        <textarea x-model="paymentForm.user_note" rows="3" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"></textarea>
                     </label>
                     <template x-if="selectedPlan() || selectedBank()">
                         <div class="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm sm:col-span-2">
@@ -465,13 +437,34 @@
                                 </div>
                                 <div class="flex items-center justify-between gap-3">
                                     <span class="text-zinc-500">Rekening</span>
-                                    <span class="text-right font-medium" x-text="selectedBank() ? `${selectedBank().bank_name} ${selectedBank().account_number}` : '-'"></span>
+                                    <div class="flex min-w-0 items-center justify-end gap-2">
+                                        <span class="truncate text-right font-medium" x-text="selectedBank() ? `${selectedBank().bank_name} ${selectedBank().account_number}` : '-'"></span>
+                                        <button x-show="selectedBank()" type="button" @click="copySelectedBankNumber"
+                                            class="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-zinc-300 bg-white hover:bg-zinc-50"
+                                            title="Salin nomor rekening">
+                                            <i data-lucide="copy" class="h-4 w-4"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div x-show="selectedBank()?.account_holder_name" class="flex items-center justify-between gap-3">
+                                    <span class="text-zinc-500">Atas nama</span>
+                                    <span class="text-right font-medium" x-text="selectedBank()?.account_holder_name"></span>
                                 </div>
                                 <p x-show="selectedBank()?.payment_instruction" class="border-t border-zinc-200 pt-2 text-xs leading-5 text-zinc-600"
                                     x-text="selectedBank()?.payment_instruction"></p>
                             </div>
                         </div>
                     </template>
+                    <label class="block sm:col-span-2">
+                        <span class="text-sm font-medium">Bukti transfer</span>
+                        <input x-ref="paymentProofInput" @change="setProofFile($event)" type="file" accept=".jpg,.jpeg,.png,.pdf"
+                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                        <span x-show="proofFileName" class="mt-1 block text-xs text-zinc-500" x-text="proofFileName"></span>
+                    </label>
+                    <label class="block sm:col-span-2">
+                        <span class="text-sm font-medium">Catatan</span>
+                        <textarea x-model="paymentForm.user_note" rows="3" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"></textarea>
+                    </label>
                     <div x-show="plans.length === 0 || bankAccounts.length === 0"
                         class="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 sm:col-span-2">
                         Paket aktif atau rekening tujuan belum tersedia.
@@ -594,6 +587,18 @@
                     this.sidebarOpen = false;
                     this.clearNotice(key);
                     this.refreshIcons();
+                },
+                scrollToPlans() {
+                    this.$refs.plansSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                },
+                subscriptionCtaLabel() {
+                    return this.subscription?.has_active_subscription ? 'Perpanjang' : 'Pilih Paket';
+                },
+                subscriptionHint() {
+                    if (this.subscription?.has_active_subscription) {
+                        return 'Langganan aktif sampai tanggal di atas.';
+                    }
+                    return 'Pilih paket dan kirim bukti transfer untuk mengaktifkan langganan.';
                 },
                 modalTitle() {
                     return {
@@ -763,6 +768,12 @@
                     await navigator.clipboard.writeText(this.guestPage.link);
                     this.setMessage('Link halaman guest disalin.');
                 },
+                async copySelectedBankNumber() {
+                    const bank = this.selectedBank();
+                    if (!bank?.account_number) return;
+                    await navigator.clipboard.writeText(bank.account_number);
+                    this.setMessage('Nomor rekening disalin.', this.tab);
+                },
                 selectedPlan() {
                     return this.plans.find(plan => Number(plan.id) === Number(this.paymentForm.subscription_plan_id)) || null;
                 },
@@ -787,9 +798,9 @@
                         tidak_aktif: 'Tidak aktif',
                         belum_aktif: 'Belum aktif',
                         berakhir: 'Berakhir',
-                        menunggu_pembayaran: 'Menunggu pembayaran',
-                        menunggu_konfirmasi_admin: 'Menunggu konfirmasi',
-                        disetujui: 'Disetujui',
+                        menunggu_pembayaran: 'Menunggu transfer',
+                        menunggu_konfirmasi_admin: 'Bukti dicek',
+                        disetujui: 'Aktif',
                         ditolak: 'Ditolak',
                         dibatalkan: 'Dibatalkan',
                         kedaluwarsa: 'Kedaluwarsa',
