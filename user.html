@@ -151,56 +151,104 @@
                     </div>
                 </section>
 
-                <section x-show="tab === 'profile'" class="grid gap-4 xl:grid-cols-[1fr_360px]">
-                    <div class="rounded-lg border border-zinc-200 bg-white p-4">
-                        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                            <div class="min-w-0">
+                <section x-show="tab === 'settings'" class="space-y-4">
+                    <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+                        <div class="rounded-lg border border-zinc-200 bg-white">
+                            <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                                 <h3 class="font-semibold">Profil</h3>
-                                <p class="text-sm text-zinc-500" x-text="profile?.name || '-'"></p>
-                            </div>
-                            <div class="flex flex-wrap items-center gap-2 sm:justify-end">
                                 <button type="button" @click="openProfileForm"
                                     class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
                                     <i data-lucide="pencil" class="h-4 w-4"></i>
                                     Edit Profil
                                 </button>
-                                <button @click="loadDashboard"
-                                    class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50">
-                                    <i data-lucide="refresh-cw" class="h-4 w-4"></i>
-                                    Muat ulang
-                                </button>
+                            </div>
+                            <div class="grid gap-3 p-4 text-sm sm:grid-cols-2">
+                                <div>
+                                    <p class="text-xs uppercase text-zinc-500">Nama</p>
+                                    <p class="font-medium" x-text="profile?.name || '-'"></p>
+                                </div>
+                                <div>
+                                    <p class="text-xs uppercase text-zinc-500">Username</p>
+                                    <p class="font-medium" x-text="profile?.username || '-'"></p>
+                                </div>
+                                <div>
+                                    <p class="text-xs uppercase text-zinc-500">Email</p>
+                                    <p class="font-medium" x-text="profile?.email || '-'"></p>
+                                </div>
+                                <div>
+                                    <p class="text-xs uppercase text-zinc-500">WhatsApp</p>
+                                    <p class="font-medium" x-text="profile?.whatsapp_number || '-'"></p>
+                                </div>
                             </div>
                         </div>
-                        <div class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-                            <div>
-                                <p class="text-xs uppercase text-zinc-500">Username</p>
-                                <p class="font-medium" x-text="profile?.username || '-'"></p>
+
+                        <div class="rounded-lg border border-zinc-200 bg-white">
+                            <div class="border-b border-zinc-200 px-4 py-3">
+                                <h3 class="font-semibold">Status Akun</h3>
                             </div>
-                            <div>
-                                <p class="text-xs uppercase text-zinc-500">Email</p>
-                                <p class="font-medium" x-text="profile?.email || '-'"></p>
-                            </div>
-                            <div>
-                                <p class="text-xs uppercase text-zinc-500">WhatsApp</p>
-                                <p class="font-medium" x-text="profile?.whatsapp_number || '-'"></p>
+                            <div class="grid gap-3 p-4 text-sm">
+                                <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
+                                    <span class="text-zinc-500">Akun</span>
+                                    <span :class="badgeClass(profile?.account_status)" class="rounded-full px-2 py-1 text-xs font-medium" x-text="label(profile?.account_status)"></span>
+                                </div>
+                                <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
+                                    <span class="text-zinc-500">Langganan</span>
+                                    <span :class="badgeClass(subscription.status)" class="rounded-full px-2 py-1 text-xs font-medium" x-text="label(subscription.status)"></span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-zinc-500">Berlaku sampai</span>
+                                    <span x-text="date(subscription.active_until)"></span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="rounded-lg border border-zinc-200 bg-white p-4">
-                        <h3 class="mb-3 font-semibold">Status Akun</h3>
-                        <div class="grid gap-3 text-sm">
-                            <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
-                                <span class="text-zinc-500">Akun</span>
-                                <span :class="badgeClass(profile?.account_status)" class="rounded-full px-2 py-1 text-xs font-medium" x-text="label(profile?.account_status)"></span>
+                    <div class="grid gap-4 xl:grid-cols-2">
+                        <div class="rounded-lg border border-zinc-200 bg-white">
+                            <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                                <h3 class="font-semibold">Telegram</h3>
+                                <button type="button" @click="openTelegramForm"
+                                    class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
+                                    <i data-lucide="pencil" class="h-4 w-4"></i>
+                                    Edit Chat ID
+                                </button>
                             </div>
-                            <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
-                                <span class="text-zinc-500">Langganan</span>
-                                <span :class="badgeClass(subscription.status)" class="rounded-full px-2 py-1 text-xs font-medium" x-text="label(subscription.status)"></span>
+                            <div class="grid gap-3 p-4 text-sm sm:grid-cols-2">
+                                <div>
+                                    <p class="text-xs uppercase text-zinc-500">Status</p>
+                                    <span :class="profile?.telegram_chat_id ? badgeClass('aktif') : badgeClass('belum_aktif')" class="mt-1 inline-flex rounded-full px-2 py-1 text-xs font-medium"
+                                        x-text="profile?.telegram_chat_id ? 'Sudah diatur' : 'Belum diatur'"></span>
+                                </div>
+                                <div>
+                                    <p class="text-xs uppercase text-zinc-500">Chat ID</p>
+                                    <p class="font-medium" x-text="profile?.telegram_chat_id || '-'"></p>
+                                </div>
                             </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-zinc-500">Berlaku sampai</span>
-                                <span x-text="date(subscription.active_until)"></span>
+                        </div>
+
+                        <div class="rounded-lg border border-zinc-200 bg-white">
+                            <div class="border-b border-zinc-200 px-4 py-3">
+                                <h3 class="font-semibold">Halaman Guest</h3>
+                            </div>
+                            <div class="grid gap-3 p-4 text-sm sm:grid-cols-2">
+                                <div>
+                                    <p class="text-xs uppercase text-zinc-500">Status</p>
+                                    <span :class="badgeClass(Number(guestPage?.is_active) === 1 ? 'aktif' : 'tidak_aktif')" class="mt-1 inline-flex rounded-full px-2 py-1 text-xs font-medium"
+                                        x-text="Number(guestPage?.is_active) === 1 ? 'Aktif' : 'Tidak aktif'"></span>
+                                </div>
+                                <div>
+                                    <p class="text-xs uppercase text-zinc-500">Identifier</p>
+                                    <p class="font-medium" x-text="guestPage?.identifier || '-'"></p>
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <p class="text-xs uppercase text-zinc-500">Link</p>
+                                    <div class="mt-1 flex gap-2">
+                                        <input :value="guestPage?.link || '-'" readonly class="min-w-0 flex-1 rounded-md border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm">
+                                        <button type="button" @click="copyGuestLink" class="grid h-10 w-10 shrink-0 place-items-center rounded-md border border-zinc-300 hover:bg-zinc-50" title="Salin link" aria-label="Salin link">
+                                            <i data-lucide="copy" class="h-4 w-4"></i>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -305,81 +353,6 @@
                     </div>
                 </section>
 
-                <section x-show="tab === 'telegram'" class="grid gap-4 xl:grid-cols-[1fr_320px]">
-                    <div class="rounded-lg border border-zinc-200 bg-white p-4">
-                        <div class="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                            <h3 class="font-semibold">Status Telegram</h3>
-                            <div class="flex flex-wrap items-center gap-2 sm:justify-end">
-                                <button type="button" @click="openTelegramForm"
-                                    class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
-                                    <i data-lucide="pencil" class="h-4 w-4"></i>
-                                    Edit Chat ID
-                                </button>
-                                <button @click="loadDashboard"
-                                    class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50">
-                                    <i data-lucide="refresh-cw" class="h-4 w-4"></i>
-                                    Muat ulang
-                                </button>
-                            </div>
-                        </div>
-                        <span :class="profile?.telegram_chat_id ? badgeClass('aktif') : badgeClass('belum_aktif')" class="rounded-full px-2 py-1 text-xs font-medium"
-                            x-text="profile?.telegram_chat_id ? 'Sudah diatur' : 'Belum diatur'"></span>
-                    </div>
-                </section>
-
-                <section x-show="tab === 'guest'" class="grid gap-4 xl:grid-cols-[1fr_320px]">
-                    <div class="rounded-lg border border-zinc-200 bg-white p-4">
-                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                            <h3 class="font-semibold">Link Halaman Guest</h3>
-                            <div class="flex flex-wrap items-center gap-2 sm:justify-end">
-                                <button type="button" @click="openGuestForm"
-                                    class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
-                                    <i data-lucide="settings" class="h-4 w-4"></i>
-                                    Atur Guest
-                                </button>
-                                <button @click="loadDashboard"
-                                    class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50">
-                                    <i data-lucide="refresh-cw" class="h-4 w-4"></i>
-                                    Muat ulang
-                                </button>
-                            </div>
-                        </div>
-                        <div class="mt-4 grid gap-3 text-sm">
-                            <div>
-                                <p class="text-xs uppercase text-zinc-500">Identifier</p>
-                                <p class="font-medium" x-text="guestPage?.identifier || '-'"></p>
-                            </div>
-                            <div>
-                                <p class="text-xs uppercase text-zinc-500">Link</p>
-                                <div class="mt-1 flex gap-2">
-                                    <input :value="guestPage?.link || '-'" readonly class="min-w-0 flex-1 rounded-md border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm">
-                                    <button type="button" @click="copyGuestLink" class="rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50" title="Salin link">
-                                        <i data-lucide="copy" class="h-4 w-4"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="rounded-lg border border-zinc-200 bg-white p-4">
-                        <h3 class="mb-3 font-semibold">Status Akses</h3>
-                        <div class="grid gap-3 text-sm">
-                            <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
-                                <span class="text-zinc-500">Halaman</span>
-                                <span :class="badgeClass(Number(guestPage?.is_active) === 1 ? 'aktif' : 'tidak_aktif')" class="rounded-full px-2 py-1 text-xs font-medium"
-                                    x-text="Number(guestPage?.is_active) === 1 ? 'Aktif' : 'Tidak aktif'"></span>
-                            </div>
-                            <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
-                                <span class="text-zinc-500">Akun</span>
-                                <span x-text="label(profile?.account_status)"></span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-zinc-500">Langganan</span>
-                                <span x-text="label(subscription.status)"></span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
             </section>
         </section>
 
@@ -512,33 +485,6 @@
                     </div>
                 </form>
 
-                <form x-show="formModal.type === 'guest'" @submit.prevent="saveGuestConfig" class="grid gap-3 sm:grid-cols-2">
-                    <label class="block">
-                        <span class="text-sm font-medium">Identifier</span>
-                        <input :value="guestPage?.identifier || '-'" readonly class="mt-1 w-full rounded-md border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm">
-                    </label>
-                    <label class="block sm:col-span-2">
-                        <span class="text-sm font-medium">Link</span>
-                        <div class="mt-1 flex gap-2">
-                            <input :value="guestPage?.link || '-'" readonly class="min-w-0 flex-1 rounded-md border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm">
-                            <button type="button" @click="copyGuestLink" class="rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50" title="Salin link">
-                                <i data-lucide="copy" class="h-4 w-4"></i>
-                            </button>
-                        </div>
-                    </label>
-                    <label class="inline-flex items-center gap-2 text-sm sm:col-span-2">
-                        <input x-model="guestForm.is_active" type="checkbox" class="rounded border-zinc-300 text-cyan-700">
-                        Aktif
-                    </label>
-                    <div class="mt-2 flex flex-col-reverse gap-2 sm:col-span-2 sm:flex-row sm:justify-end">
-                        <button type="button" @click="closeFormModal" class="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50">Batal</button>
-                        <button :disabled="actionLoading === 'saveGuestConfig'"
-                            class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800 disabled:cursor-not-allowed disabled:opacity-60">
-                            <i data-lucide="save" class="h-4 w-4"></i>
-                            <span x-text="actionLoading === 'saveGuestConfig' ? 'Menyimpan...' : 'Simpan'"></span>
-                        </button>
-                    </div>
-                </form>
             </div>
         </div>
 
@@ -656,15 +602,12 @@
                 toastId: 0,
                 nav: [
                     { key: 'overview', label: 'Dashboard', icon: 'layout-dashboard' },
-                    { key: 'profile', label: 'Profil', icon: 'user' },
                     { key: 'subscriptions', label: 'Langganan', icon: 'calendar-days' },
-                    { key: 'telegram', label: 'Telegram', icon: 'send' },
-                    { key: 'guest', label: 'Guest', icon: 'link' },
+                    { key: 'settings', label: 'Pengaturan', icon: 'settings' },
                 ],
                 profileForm: {},
                 paymentForm: { subscription_plan_id: '', bank_account_id: '', proof_file: null },
                 proofFileName: '',
-                guestForm: { is_active: false },
                 formModal: { open: false, type: '' },
                 paymentDetailOpen: false,
                 selectedPayment: null,
@@ -729,8 +672,7 @@
                     return {
                         profile: 'Edit Profil',
                         payment: 'Buat Pembayaran',
-                        telegram: 'Konfigurasi Telegram',
-                        guest: 'Konfigurasi Guest',
+                        telegram: 'Edit Chat ID',
                     }[this.formModal.type] || 'Form';
                 },
                 closeFormModal() {
@@ -769,11 +711,6 @@
                 openCreatePayment(planId = null) {
                     this.resetPaymentForm(planId || '');
                     this.formModal = { open: true, type: 'payment' };
-                    this.refreshIcons();
-                },
-                openGuestForm() {
-                    this.guestForm.is_active = Number(this.guestPage?.is_active) === 1;
-                    this.formModal = { open: true, type: 'guest' };
                     this.refreshIcons();
                 },
                 openPaymentDetail(payment) {
@@ -839,7 +776,6 @@
                         this.payments = data.payments || [];
                         this.guestPage = data.guest_page;
                         this.syncProfileForm();
-                        this.guestForm.is_active = Number(this.guestPage?.is_active) === 1;
                     } catch (error) {
                         this.setError(error.message);
                     } finally {
@@ -881,22 +817,6 @@
                         this.resetPaymentForm();
                         this.closeFormModal();
                         await this.loadDashboard();
-                    } catch (error) {
-                        this.setError(error.message, noticeTab);
-                    } finally {
-                        this.actionLoading = '';
-                        this.refreshIcons();
-                    }
-                },
-                async saveGuestConfig() {
-                    const noticeTab = this.tab;
-                    this.clearNotice(noticeTab);
-                    this.actionLoading = 'saveGuestConfig';
-                    try {
-                        const data = await this.post('user-guest-config-save', { is_active: this.guestForm.is_active });
-                        this.guestPage = data.guest_page;
-                        this.setMessage(data.message, noticeTab);
-                        this.closeFormModal();
                     } catch (error) {
                         this.setError(error.message, noticeTab);
                     } finally {
