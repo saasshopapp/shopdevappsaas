@@ -211,80 +211,60 @@
                 </section>
 
                 <section x-show="tab === 'settings'" class="space-y-4">
-                    <div class="grid gap-4 xl:grid-cols-2">
-                        <div class="rounded-lg border border-zinc-200 bg-white">
-                            <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                                <h3 class="font-semibold">Paket Langganan</h3>
-                                <button type="button" @click="openPlanForm()"
-                                    class="inline-flex items-center justify-center gap-2 rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800">
-                                    <i data-lucide="plus" class="h-4 w-4"></i>
-                                    Tambah Paket
-                                </button>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="w-full min-w-[560px] text-left text-sm">
-                                    <thead class="bg-zinc-50 text-xs uppercase text-zinc-500">
-                                        <tr>
-                                            <th class="px-4 py-3">Paket</th>
-                                            <th class="px-4 py-3">Harga</th>
-                                            <th class="px-4 py-3">Status</th>
-                                            <th class="px-4 py-3">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <template x-for="plan in plans" :key="plan.id">
-                                            <tr class="border-t border-zinc-100">
-                                                <td class="px-4 py-3">
-                                                    <p class="font-medium" x-text="plan.name"></p>
-                                                    <p class="text-xs text-zinc-500" x-text="`${plan.duration_days} hari`"></p>
-                                                </td>
-                                                <td class="px-4 py-3" x-text="money(plan.price)"></td>
-                                                <td class="px-4 py-3"><span :class="badgeClass(Number(plan.is_active) === 1 ? 'aktif' : 'tidak_aktif')" class="rounded-full px-2 py-1 text-xs font-medium" x-text="Number(plan.is_active) === 1 ? 'Aktif' : 'Tidak aktif'"></span></td>
-                                                <td class="px-4 py-3"><button @click="editPlan(plan)" class="rounded-md border border-zinc-300 px-2 py-1 text-xs hover:bg-zinc-50">Edit</button></td>
-                                            </tr>
-                                        </template>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div x-show="plans.length === 0" class="px-4 py-8 text-sm text-zinc-500">Belum ada paket.</div>
+                    <div class="rounded-lg border border-zinc-200 bg-white">
+                        <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                            <h3 class="font-semibold">Paket Langganan</h3>
+                            <button type="button" @click="openPlanForm()"
+                                class="inline-flex items-center justify-center gap-2 rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800">
+                                <i data-lucide="plus" class="h-4 w-4"></i>
+                                Tambah Paket
+                            </button>
                         </div>
+                        <div class="divide-y divide-zinc-100">
+                            <template x-for="plan in plans" :key="plan.id">
+                                <div class="grid gap-3 px-4 py-4 text-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                                    <div class="min-w-0">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <p class="font-semibold" x-text="plan.name"></p>
+                                            <span :class="badgeClass(Number(plan.is_active) === 1 ? 'aktif' : 'tidak_aktif')" class="rounded-full px-2 py-1 text-xs font-medium"
+                                                x-text="Number(plan.is_active) === 1 ? 'Aktif' : 'Tidak aktif'"></span>
+                                        </div>
+                                        <p class="mt-1 text-zinc-600" x-text="`${money(plan.price)} / ${plan.duration_days} hari`"></p>
+                                        <p class="mt-1 truncate text-xs text-zinc-500" x-text="plan.description || '-'"></p>
+                                    </div>
+                                    <button @click="editPlan(plan)" class="inline-flex items-center justify-center rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50">Edit</button>
+                                </div>
+                            </template>
+                        </div>
+                        <div x-show="plans.length === 0" class="px-4 py-8 text-sm text-zinc-500">Belum ada paket.</div>
+                    </div>
 
-                        <div class="rounded-lg border border-zinc-200 bg-white">
-                            <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                                <h3 class="font-semibold">Rekening Pembayaran</h3>
-                                <button type="button" @click="openBankForm()"
-                                    class="inline-flex items-center justify-center gap-2 rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800">
-                                    <i data-lucide="plus" class="h-4 w-4"></i>
-                                    Tambah Rekening
-                                </button>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="w-full min-w-[560px] text-left text-sm">
-                                    <thead class="bg-zinc-50 text-xs uppercase text-zinc-500">
-                                        <tr>
-                                            <th class="px-4 py-3">Bank</th>
-                                            <th class="px-4 py-3">Rekening</th>
-                                            <th class="px-4 py-3">Status</th>
-                                            <th class="px-4 py-3">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <template x-for="bank in bankAccounts" :key="bank.id">
-                                            <tr class="border-t border-zinc-100">
-                                                <td class="px-4 py-3">
-                                                    <p class="font-medium" x-text="bank.bank_name"></p>
-                                                    <p class="text-xs text-zinc-500" x-text="bank.account_holder_name"></p>
-                                                </td>
-                                                <td class="px-4 py-3" x-text="bank.account_number"></td>
-                                                <td class="px-4 py-3"><span :class="badgeClass(Number(bank.is_active) === 1 ? 'aktif' : 'tidak_aktif')" class="rounded-full px-2 py-1 text-xs font-medium" x-text="Number(bank.is_active) === 1 ? 'Aktif' : 'Tidak aktif'"></span></td>
-                                                <td class="px-4 py-3"><button @click="editBank(bank)" class="rounded-md border border-zinc-300 px-2 py-1 text-xs hover:bg-zinc-50">Edit</button></td>
-                                            </tr>
-                                        </template>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div x-show="bankAccounts.length === 0" class="px-4 py-8 text-sm text-zinc-500">Belum ada rekening pembayaran.</div>
+                    <div class="rounded-lg border border-zinc-200 bg-white">
+                        <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                            <h3 class="font-semibold">Rekening Pembayaran</h3>
+                            <button type="button" @click="openBankForm()"
+                                class="inline-flex items-center justify-center gap-2 rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800">
+                                <i data-lucide="plus" class="h-4 w-4"></i>
+                                Tambah Rekening
+                            </button>
                         </div>
+                        <div class="divide-y divide-zinc-100">
+                            <template x-for="bank in bankAccounts" :key="bank.id">
+                                <div class="grid gap-3 px-4 py-4 text-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                                    <div class="min-w-0">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <p class="font-semibold" x-text="bank.bank_name"></p>
+                                            <span :class="badgeClass(Number(bank.is_active) === 1 ? 'aktif' : 'tidak_aktif')" class="rounded-full px-2 py-1 text-xs font-medium"
+                                                x-text="Number(bank.is_active) === 1 ? 'Aktif' : 'Tidak aktif'"></span>
+                                        </div>
+                                        <p class="mt-1 font-medium" x-text="bank.account_number"></p>
+                                        <p class="mt-1 text-xs text-zinc-500" x-text="bank.account_holder_name || '-'"></p>
+                                    </div>
+                                    <button @click="editBank(bank)" class="inline-flex items-center justify-center rounded-md border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-50">Edit</button>
+                                </div>
+                            </template>
+                        </div>
+                        <div x-show="bankAccounts.length === 0" class="px-4 py-8 text-sm text-zinc-500">Belum ada rekening pembayaran.</div>
                     </div>
                 </section>
 
@@ -503,9 +483,14 @@
         <div x-show="paymentDetailOpen" x-transition.opacity @keydown.escape.window="if (!proofPreviewOpen) closePaymentDetail()"
             class="fixed inset-0 z-50 grid place-items-stretch bg-black/40 p-0 sm:place-items-center sm:p-4" style="display: none;">
             <div role="dialog" aria-modal="true"
-                class="h-full max-h-none w-full overflow-y-auto rounded-none bg-white p-5 shadow-lg sm:h-auto sm:max-h-[92vh] sm:max-w-2xl sm:rounded-lg">
+                class="h-full max-h-none w-full overflow-y-auto rounded-none bg-white p-5 shadow-lg sm:h-auto sm:max-h-[92vh] sm:max-w-3xl sm:rounded-lg">
                 <div class="mb-4 flex items-center justify-between gap-3">
-                    <h3 class="text-lg font-semibold">Detail Pembayaran</h3>
+                    <div class="min-w-0">
+                        <h3 class="text-lg font-semibold">Detail Pembayaran</h3>
+                        <p class="truncate text-sm text-zinc-500" x-text="selectedPayment?.payment_code || ''"></p>
+                    </div>
+                    <span x-show="selectedPayment" :class="badgeClass(selectedPayment?.status)" class="ml-auto hidden shrink-0 rounded-full px-2 py-1 text-xs font-medium sm:inline-flex"
+                        x-text="label(selectedPayment?.status)"></span>
                     <button type="button" @click="closePaymentDetail" class="grid h-9 w-9 place-items-center rounded-md border border-zinc-300 hover:bg-zinc-50" aria-label="Tutup detail">
                         <i data-lucide="x" class="h-4 w-4"></i>
                     </button>
@@ -513,69 +498,78 @@
 
                 <template x-if="selectedPayment">
                     <div class="space-y-4">
-                        <div class="grid gap-3 text-sm sm:grid-cols-2">
-                            <div>
-                                <p class="text-xs uppercase text-zinc-500">Kode</p>
-                                <p class="font-medium" x-text="selectedPayment.payment_code"></p>
-                            </div>
-                            <div>
+                        <div class="grid gap-3 text-sm sm:grid-cols-3">
+                            <div class="sm:hidden">
                                 <p class="text-xs uppercase text-zinc-500">Status</p>
-                                <span :class="badgeClass(selectedPayment.status)" class="rounded-full px-2 py-1 text-xs font-medium" x-text="label(selectedPayment.status)"></span>
+                                <span :class="badgeClass(selectedPayment.status)" class="mt-1 inline-flex rounded-full px-2 py-1 text-xs font-medium" x-text="label(selectedPayment.status)"></span>
                             </div>
-                            <div>
-                                <p class="text-xs uppercase text-zinc-500">User</p>
-                                <p class="font-medium" x-text="`${selectedPayment.user_name || '-'} (${selectedPayment.username || '-'})`"></p>
-                            </div>
-                            <div>
-                                <p class="text-xs uppercase text-zinc-500">Paket</p>
-                                <p class="font-medium" x-text="`${selectedPayment.plan_name || '-'} - ${selectedPayment.duration_days || 0} hari`"></p>
-                            </div>
-                            <div>
+                            <div class="rounded-md border border-zinc-200 bg-zinc-50 p-3">
                                 <p class="text-xs uppercase text-zinc-500">Nominal</p>
-                                <p class="font-medium" x-text="money(selectedPayment.amount)"></p>
+                                <p class="mt-1 text-lg font-semibold" x-text="money(selectedPayment.amount)"></p>
                             </div>
-                            <div>
-                                <p class="text-xs uppercase text-zinc-500">Rekening</p>
-                                <p class="font-medium" x-text="`${selectedPayment.bank_name || '-'} ${selectedPayment.account_number || ''}`"></p>
-                                <p class="text-xs text-zinc-500" x-text="selectedPayment.account_holder_name || '-'"></p>
+                            <div class="rounded-md border border-zinc-200 bg-zinc-50 p-3">
+                                <p class="text-xs uppercase text-zinc-500">Paket</p>
+                                <p class="mt-1 font-medium" x-text="selectedPayment.plan_name || '-'"></p>
+                                <p class="text-xs text-zinc-500" x-text="`${selectedPayment.duration_days || 0} hari`"></p>
                             </div>
-                            <div>
-                                <p class="text-xs uppercase text-zinc-500">Dibuat</p>
-                                <p class="font-medium" x-text="date(selectedPayment.created_at)"></p>
-                            </div>
-                            <div>
-                                <p class="text-xs uppercase text-zinc-500">Dikirim</p>
-                                <p class="font-medium" x-text="date(selectedPayment.submitted_at)"></p>
+                            <div class="rounded-md border border-zinc-200 bg-zinc-50 p-3">
+                                <p class="text-xs uppercase text-zinc-500">User</p>
+                                <p class="mt-1 font-medium" x-text="selectedPayment.user_name || '-'"></p>
+                                <p class="text-xs text-zinc-500" x-text="selectedPayment.username || '-'"></p>
                             </div>
                         </div>
 
-                        <div class="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm">
-                            <p class="text-xs uppercase text-zinc-500">Catatan user</p>
-                            <p class="mt-1 whitespace-pre-line" x-text="selectedPayment.user_note || '-'"></p>
+                        <div class="rounded-md border border-zinc-200">
+                            <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                                <h4 class="font-semibold">Transfer</h4>
+                                <button x-show="selectedPayment.has_proof_file" type="button" @click="openProofPreview"
+                                    class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-50">
+                                    <i data-lucide="file-search" class="h-4 w-4"></i>
+                                    Lihat bukti
+                                </button>
+                            </div>
+                            <div class="grid gap-3 p-4 text-sm sm:grid-cols-2">
+                                <div>
+                                    <p class="text-xs uppercase text-zinc-500">Rekening tujuan</p>
+                                    <p class="font-medium" x-text="`${selectedPayment.bank_name || '-'} ${selectedPayment.account_number || ''}`"></p>
+                                    <p class="text-xs text-zinc-500" x-text="selectedPayment.account_holder_name || '-'"></p>
+                                </div>
+                                <div>
+                                    <p class="text-xs uppercase text-zinc-500">Dibuat</p>
+                                    <p class="font-medium" x-text="date(selectedPayment.created_at)"></p>
+                                </div>
+                                <div>
+                                    <p class="text-xs uppercase text-zinc-500">Dikirim</p>
+                                    <p class="font-medium" x-text="date(selectedPayment.submitted_at)"></p>
+                                </div>
+                                <div>
+                                    <p class="text-xs uppercase text-zinc-500">Diverifikasi</p>
+                                    <p class="font-medium" x-text="date(selectedPayment.verified_at)"></p>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-                            <label class="block">
+                        <div class="rounded-md border border-zinc-200 p-4 text-sm">
+                            <label x-show="selectedPayment.status === 'menunggu_konfirmasi_admin'" class="block">
                                 <span class="text-sm font-medium">Catatan admin</span>
                                 <textarea x-model="selectedPayment.admin_note" rows="3"
                                     class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"></textarea>
                             </label>
-                            <button x-show="selectedPayment.has_proof_file" type="button" @click="openProofPreview"
-                                class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 px-4 py-2 text-sm font-semibold hover:bg-zinc-50">
-                                <i data-lucide="file-search" class="h-4 w-4"></i>
-                                Lihat bukti
-                            </button>
+                            <div x-show="selectedPayment.status !== 'menunggu_konfirmasi_admin'">
+                                <p class="text-xs uppercase text-zinc-500">Catatan admin</p>
+                                <p class="mt-1 whitespace-pre-line" x-text="selectedPayment.admin_note || '-'"></p>
+                            </div>
                         </div>
 
                         <div class="flex flex-col-reverse gap-2 border-t border-zinc-200 pt-4 sm:flex-row sm:justify-end">
                             <button type="button" @click="closePaymentDetail" class="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50">Tutup</button>
-                            <button @click="confirmPayment('reject')" :disabled="selectedPayment.status !== 'menunggu_konfirmasi_admin'"
-                                class="inline-flex items-center justify-center gap-2 rounded-md bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50">
+                            <button x-show="selectedPayment.status === 'menunggu_konfirmasi_admin'" @click="confirmPayment('reject')"
+                                class="inline-flex items-center justify-center gap-2 rounded-md bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800">
                                 <i data-lucide="x-circle" class="h-4 w-4"></i>
                                 Tolak
                             </button>
-                            <button @click="confirmPayment('approve')" :disabled="selectedPayment.status !== 'menunggu_konfirmasi_admin'"
-                                class="inline-flex items-center justify-center gap-2 rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50">
+                            <button x-show="selectedPayment.status === 'menunggu_konfirmasi_admin'" @click="confirmPayment('approve')"
+                                class="inline-flex items-center justify-center gap-2 rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800">
                                 <i data-lucide="check-circle" class="h-4 w-4"></i>
                                 Setujui
                             </button>
