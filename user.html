@@ -770,11 +770,7 @@
                 },
                 async logout() {
                     await this.post('logout', {});
-                    this.currentUser = null;
-                    this.sidebarOpen = false;
-                    this.message = '';
-                    this.error = '';
-                    this.loginForm.password = '';
+                    window.location.href = '/';
                 },
                 async loadDashboard() {
                     this.setError('');
