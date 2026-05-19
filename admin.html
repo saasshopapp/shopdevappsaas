@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin SaaS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="config.js"></script>
+    <link rel="stylesheet" href="design-system.css">
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-zinc-100 text-zinc-900">
+    <main x-data="adminDashboard()" x-init="init()" x-cloak class="min-h-screen">
+        <section x-show="!currentUser" class="grid min-h-screen place-items-center px-4 py-10">
+            <div class="w-full max-w-sm rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
+                <div class="mb-6">
+                    <p class="text-sm font-medium text-teal-700">My SaaS</p>
+                    <h1 class="mt-1 text-2xl font-semibold">Login Admin</h1>
+                </div>
+
+                <form @submit.prevent="login" class="space-y-4">
+                    <label class="block">
+                        <span class="text-sm font-medium">Username atau email</span>
+                        <input x-model="loginForm.login" type="text"
+                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                            autocomplete="username" required>
+                    </label>
+
+                    <label class="block">
+                        <span class="text-sm font-medium">Password</span>
+                        <input x-model="loginForm.password" type="password"
+                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                            autocomplete="current-password" required>
+                    </label>
+
+                    <button type="submit" :disabled="loading"
+                        class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60">
+                        <i data-lucide="log-in" class="h-4 w-4"></i>
+                        <span x-text="loading ? 'Memproses...' : 'Masuk'"></span>
+                    </button>
+                </form>
+
+                <div x-show="error" class="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+                    x-text="error"></div>
+            </div>
+        </section>
+
+        <section x-show="currentUser" class="min-h-screen lg:block">
+            <header class="sticky top-0 z-40 flex items-center justify-between border-b border-zinc-200 bg-white px-4 py-3 lg:hidden">
+                <button type="button" @click="sidebarOpen = true"
+                    class="grid h-10 w-10 place-items-center rounded-md border border-zinc-300 hover:bg-zinc-50"
+                    aria-label="Buka menu">
+                    <i data-lucide="menu" class="h-5 w-5"></i>
+                </button>
+                <div class="min-w-0 text-center">
+                    <p class="truncate text-sm font-medium text-teal-700">My SaaS</p>
+                    <h1 class="truncate text-base font-semibold">Admin</h1>
+                </div>
+                <div class="h-10 w-10"></div>
+            </header>
+
+            <div x-show="sidebarOpen" x-transition.opacity @click="sidebarOpen = false"
+                class="fixed inset-0 z-40 bg-black/40 lg:hidden" style="display: none;"></div>
+
+            <aside class="fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col overflow-y-auto border-r border-zinc-200 bg-white shadow-xl transition-transform duration-200 lg:w-[260px] lg:translate-x-0 lg:shadow-none"
+                :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
+                <div class="flex items-center justify-between px-4 py-4">
+                    <div>
+                        <p class="text-sm font-medium text-teal-700">My SaaS</p>
+                        <h1 class="text-lg font-semibold">Admin</h1>
+                    </div>
+                    <button type="button" @click="sidebarOpen = false"
+                        class="grid h-9 w-9 place-items-center rounded-md border border-zinc-300 hover:bg-zinc-50 lg:hidden"
+                        aria-label="Tutup menu">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                    </button>
+                </div>
+
+                <nav class="flex-1 space-y-1 px-4 pb-4">
+                    <template x-for="item in nav" :key="item.key">
+                        <button @click="switchTab(item.key)"
+                            class="inline-flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium"
+                            :class="tab === item.key ? 'bg-teal-50 text-teal-800' : 'text-zinc-600 hover:bg-zinc-100'">
+                            <i :data-lucide="item.icon" class="h-4 w-4"></i>
+                            <span x-text="item.label"></span>
+                        </button>
+                    </template>
+                </nav>
+
+                <div class="border-t border-zinc-200 p-4">
+                    <div class="mb-3 min-w-0">
+                        <p class="truncate text-sm font-semibold" x-text="currentUser?.name || currentUser?.username || '-'"></p>
+                        <p class="truncate text-xs text-zinc-500" x-text="currentUser?.username || '-'"></p>
+                    </div>
+                    <button @click="openAdminPasswordForm"
+                        class="mb-2 inline-flex w-full items-center justify-center gap-2 rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-50">
+                        <i data-lucide="key-round" class="h-4 w-4"></i>
+                        Ubah Password
+                    </button>
+                    <button @click="logout"
+                        class="inline-flex w-full items-center justify-center gap-2 rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-50">
+                        <i data-lucide="log-out" class="h-4 w-4"></i>
+                        Keluar
+                    </button>
+                </div>
+            </aside>
+
+            <section class="p-4 lg:ml-[260px] lg:p-6">
+                <div class="mb-4 min-w-0">
+                    <h2 class="text-xl font-semibold" x-text="activeTitle()"></h2>
+                </div>
+
+                <div x-show="message && messageTab === tab" role="status" aria-live="polite"
+                    class="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800"
+                    x-text="message"></div>
+                <div x-show="error && errorTab === tab" role="alert"
+                    class="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+                    x-text="error"></div>
+
+                <section x-show="tab === 'overview'" class="space-y-4">
+                    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                        <template x-for="card in summaryCards()" :key="card.label">
+                            <div class="rounded-lg border border-zinc-200 bg-white p-4">
+                                <p class="text-xs font-medium uppercase tracking-wide text-zinc-500" x-text="card.label"></p>
+                                <p class="mt-2 text-2xl font-semibold" x-text="card.value"></p>
+                            </div>
+                        </template>
+                    </div>
+
+                    <div class="rounded-lg border border-zinc-200 bg-white">
+                        <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                            <h3 class="font-semibold">Pembayaran Terbaru</h3>
+                            <button @click="loadAll" :disabled="actionLoading === 'loadAll'"
+                                class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60">
+                                <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                                <span x-text="actionLoading === 'loadAll' ? 'Memuat...' : 'Muat ulang'"></span>
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full min-w-[760px] text-left text-sm">
+                                <thead class="bg-zinc-50 text-xs uppercase text-zinc-500">
+                                    <tr>
+                                        <th class="px-4 py-3">Kode</th>
+                                        <th class="px-4 py-3">User</th>
+                                        <th class="px-4 py-3">Paket</th>
+                                        <th class="px-4 py-3">Nominal</th>
+                                        <th class="px-4 py-3">Status</th>
+                                        <th class="px-4 py-3">Dibuat</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="payment in latestPayments" :key="payment.id">
+                                        <tr class="border-t border-zinc-100">
+                                            <td class="px-4 py-3 font-medium" x-text="payment.payment_code"></td>
+                                            <td class="px-4 py-3" x-text="payment.username"></td>
+                                            <td class="px-4 py-3" x-text="payment.plan_name"></td>
+                                            <td class="px-4 py-3" x-text="money(payment.amount)"></td>
+                                            <td class="px-4 py-3"><span :class="badgeClass(payment.status)" class="rounded-full px-2 py-1 text-xs font-medium" x-text="label(payment.status)"></span></td>
+                                            <td class="px-4 py-3" x-text="date(payment.created_at)"></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div x-show="latestPayments.length === 0" class="px-4 py-8 text-sm text-zinc-500">Belum ada pembayaran.</div>
+                    </div>
+                </section>
+
+                <section x-show="tab === 'users'" class="space-y-4">
+                    <div class="rounded-lg border border-zinc-200 bg-white">
+                        <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                            <h3 class="font-semibold">Daftar User</h3>
+                            <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+                                <button type="button" @click="openUserForm()"
+                                    class="inline-flex items-center justify-center gap-2 rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800">
+                                    <i data-lucide="plus" class="h-4 w-4"></i>
+                                    Tambah User
+                                </button>
+                                <button @click="loadAll" :disabled="actionLoading === 'loadAll'"
+                                    class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60">
+                                    <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                                    <span x-text="actionLoading === 'loadAll' ? 'Memuat...' : 'Muat ulang'"></span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full min-w-[920px] text-left text-sm">
+                                <thead class="bg-zinc-50 text-xs uppercase text-zinc-500">
+                                    <tr>
+                                        <th class="px-4 py-3">User</th>
+                                        <th class="px-4 py-3">Kontak</th>
+                                        <th class="px-4 py-3">Akun</th>
+                                        <th class="px-4 py-3">Langganan</th>
+                                        <th class="px-4 py-3">Telegram</th>
+                                        <th class="px-4 py-3">Guest</th>
+                                        <th class="px-4 py-3">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="user in users" :key="user.id">
+                                        <tr class="border-t border-zinc-100">
+                                            <td class="px-4 py-3">
+                                                <p class="font-medium" x-text="user.name"></p>
+                                                <p class="text-xs text-zinc-500" x-text="user.username"></p>
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                <p x-text="user.email || '-'"></p>
+                                                <p class="text-xs text-zinc-500" x-text="user.whatsapp_number || '-'"></p>
+                                            </td>
+                                            <td class="px-4 py-3"><span :class="badgeClass(user.account_status)" class="rounded-full px-2 py-1 text-xs font-medium" x-text="label(user.account_status)"></span></td>
+                                            <td class="px-4 py-3">
+                                                <p x-text="label(user.subscription_status || 'belum_aktif')"></p>
+                                                <p class="text-xs text-zinc-500" x-text="date(user.subscription_ended_at)"></p>
+                                            </td>
+                                            <td class="px-4 py-3" x-text="Number(user.telegram_configured) === 1 ? 'Sudah diatur' : 'Belum diatur'"></td>
+                                            <td class="px-4 py-3">
+                                                <p x-text="user.guest_identifier || '-'"></p>
+                                                <p class="text-xs text-zinc-500" x-text="Number(user.guest_page_active) === 1 ? 'Aktif' : 'Tidak aktif'"></p>
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                <div class="flex flex-wrap gap-2">
+                                                    <button @click="editUser(user)" class="rounded-md border border-zinc-300 px-2 py-1 text-xs hover:bg-zinc-50">Edit</button>
+                                                    <button @click="confirmStatus(user)" class="rounded-md border border-zinc-300 px-2 py-1 text-xs hover:bg-zinc-50" x-text="user.account_status === 'aktif' ? 'Nonaktifkan' : 'Aktifkan'"></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div x-show="users.length === 0" class="px-4 py-8 text-sm text-zinc-500">Belum ada user.</div>
+                    </div>
+                </section>
+
+                <section x-show="tab === 'plans'" class="space-y-4">
+                    <div class="rounded-lg border border-zinc-200 bg-white">
+                        <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                            <h3 class="font-semibold">Paket Langganan</h3>
+                            <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+                                <button type="button" @click="openPlanForm()"
+                                    class="inline-flex items-center justify-center gap-2 rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800">
+                                    <i data-lucide="plus" class="h-4 w-4"></i>
+                                    Tambah Paket
+                                </button>
+                                <button @click="loadAll" :disabled="actionLoading === 'loadAll'"
+                                    class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60">
+                                    <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                                    <span x-text="actionLoading === 'loadAll' ? 'Memuat...' : 'Muat ulang'"></span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full min-w-[760px] text-left text-sm">
+                                <thead class="bg-zinc-50 text-xs uppercase text-zinc-500">
+                                    <tr>
+                                        <th class="px-4 py-3">Paket</th>
+                                        <th class="px-4 py-3">Durasi</th>
+                                        <th class="px-4 py-3">Harga</th>
+                                        <th class="px-4 py-3">Status</th>
+                                        <th class="px-4 py-3">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="plan in plans" :key="plan.id">
+                                        <tr class="border-t border-zinc-100">
+                                            <td class="px-4 py-3">
+                                                <p class="font-medium" x-text="plan.name"></p>
+                                                <p class="text-xs text-zinc-500" x-text="plan.description || '-'"></p>
+                                            </td>
+                                            <td class="px-4 py-3" x-text="`${plan.duration_days} hari`"></td>
+                                            <td class="px-4 py-3" x-text="money(plan.price)"></td>
+                                            <td class="px-4 py-3"><span :class="badgeClass(Number(plan.is_active) === 1 ? 'aktif' : 'tidak_aktif')" class="rounded-full px-2 py-1 text-xs font-medium" x-text="Number(plan.is_active) === 1 ? 'Aktif' : 'Tidak aktif'"></span></td>
+                                            <td class="px-4 py-3"><button @click="editPlan(plan)" class="rounded-md border border-zinc-300 px-2 py-1 text-xs hover:bg-zinc-50">Edit</button></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div x-show="plans.length === 0" class="px-4 py-8 text-sm text-zinc-500">Belum ada paket.</div>
+                    </div>
+                </section>
+
+                <section x-show="tab === 'banks'" class="space-y-4">
+                    <div class="rounded-lg border border-zinc-200 bg-white">
+                        <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                            <h3 class="font-semibold">Rekening Pembayaran</h3>
+                            <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+                                <button type="button" @click="openBankForm()"
+                                    class="inline-flex items-center justify-center gap-2 rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800">
+                                    <i data-lucide="plus" class="h-4 w-4"></i>
+                                    Tambah Rekening
+                                </button>
+                                <button @click="loadAll" :disabled="actionLoading === 'loadAll'"
+                                    class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60">
+                                    <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                                    <span x-text="actionLoading === 'loadAll' ? 'Memuat...' : 'Muat ulang'"></span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full min-w-[760px] text-left text-sm">
+                                <thead class="bg-zinc-50 text-xs uppercase text-zinc-500">
+                                    <tr>
+                                        <th class="px-4 py-3">Bank</th>
+                                        <th class="px-4 py-3">Rekening</th>
+                                        <th class="px-4 py-3">Status</th>
+                                        <th class="px-4 py-3">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="bank in bankAccounts" :key="bank.id">
+                                        <tr class="border-t border-zinc-100">
+                                            <td class="px-4 py-3">
+                                                <p class="font-medium" x-text="bank.bank_name"></p>
+                                                <p class="text-xs text-zinc-500" x-text="bank.payment_instruction || '-'"></p>
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                <p x-text="bank.account_number"></p>
+                                                <p class="text-xs text-zinc-500" x-text="bank.account_holder_name"></p>
+                                            </td>
+                                            <td class="px-4 py-3"><span :class="badgeClass(Number(bank.is_active) === 1 ? 'aktif' : 'tidak_aktif')" class="rounded-full px-2 py-1 text-xs font-medium" x-text="Number(bank.is_active) === 1 ? 'Aktif' : 'Tidak aktif'"></span></td>
+                                            <td class="px-4 py-3"><button @click="editBank(bank)" class="rounded-md border border-zinc-300 px-2 py-1 text-xs hover:bg-zinc-50">Edit</button></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div x-show="bankAccounts.length === 0" class="px-4 py-8 text-sm text-zinc-500">Belum ada rekening pembayaran.</div>
+                    </div>
+                </section>
+
+                <section x-show="tab === 'payments'" class="space-y-4">
+                    <div class="rounded-lg border border-zinc-200 bg-white">
+                        <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                            <h3 class="font-semibold">Pembayaran Manual</h3>
+                            <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+                                <label class="inline-flex items-center gap-2 text-sm">
+                                    <span class="text-zinc-500">Status</span>
+                                    <select x-model="paymentStatusFilter" class="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm">
+                                        <option value="all">Semua</option>
+                                        <option value="menunggu_pembayaran">Menunggu pembayaran</option>
+                                        <option value="menunggu_konfirmasi_admin">Menunggu konfirmasi</option>
+                                        <option value="disetujui">Disetujui</option>
+                                        <option value="ditolak">Ditolak</option>
+                                        <option value="dibatalkan">Dibatalkan</option>
+                                        <option value="kedaluwarsa">Kedaluwarsa</option>
+                                    </select>
+                                </label>
+                                <button @click="loadAll" :disabled="actionLoading === 'loadAll'"
+                                    class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60">
+                                    <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                                    <span x-text="actionLoading === 'loadAll' ? 'Memuat...' : 'Muat ulang'"></span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full min-w-[900px] text-left text-sm">
+                                <thead class="bg-zinc-50 text-xs uppercase text-zinc-500">
+                                    <tr>
+                                        <th class="px-4 py-3">Kode</th>
+                                        <th class="px-4 py-3">User</th>
+                                        <th class="px-4 py-3">Paket</th>
+                                        <th class="px-4 py-3">Nominal</th>
+                                        <th class="px-4 py-3">Status</th>
+                                        <th class="px-4 py-3">Dikirim</th>
+                                        <th class="px-4 py-3">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="payment in filteredPayments()" :key="payment.id">
+                                        <tr class="border-t border-zinc-100">
+                                            <td class="px-4 py-3 font-medium" x-text="payment.payment_code"></td>
+                                            <td class="px-4 py-3" x-text="payment.username"></td>
+                                            <td class="px-4 py-3" x-text="payment.plan_name"></td>
+                                            <td class="px-4 py-3" x-text="money(payment.amount)"></td>
+                                            <td class="px-4 py-3"><span :class="badgeClass(payment.status)" class="rounded-full px-2 py-1 text-xs font-medium" x-text="label(payment.status)"></span></td>
+                                            <td class="px-4 py-3" x-text="date(payment.submitted_at || payment.created_at)"></td>
+                                            <td class="px-4 py-3">
+                                                <button @click="loadPaymentDetail(payment.id)" :disabled="actionLoading === 'payment-' + payment.id"
+                                                    class="rounded-md border border-zinc-300 px-2 py-1 text-xs hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
+                                                    x-text="actionLoading === 'payment-' + payment.id ? 'Memuat' : 'Detail'"></button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div x-show="filteredPayments().length === 0" class="px-4 py-8 text-sm text-zinc-500">Belum ada pembayaran manual untuk filter ini.</div>
+                    </div>
+                </section>
+            </section>
+        </section>
+
+        <div x-show="formModal.open" x-transition.opacity @keydown.escape.window="closeFormModal"
+            class="fixed inset-0 z-50 grid place-items-stretch bg-black/40 p-0 sm:place-items-center sm:p-4" style="display: none;">
+            <div role="dialog" aria-modal="true"
+                class="h-full max-h-none w-full overflow-y-auto rounded-none bg-white p-5 shadow-lg sm:h-auto sm:max-h-[92vh] sm:max-w-xl sm:rounded-lg">
+                <div class="mb-4 flex items-center justify-between gap-3">
+                    <h3 class="text-lg font-semibold" x-text="modalTitle()"></h3>
+                    <button type="button" @click="closeFormModal" class="grid h-9 w-9 place-items-center rounded-md border border-zinc-300 hover:bg-zinc-50" aria-label="Tutup modal">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                    </button>
+                </div>
+
+                <form x-show="formModal.type === 'user'" @submit.prevent="saveUser" class="grid gap-3 sm:grid-cols-2">
+                    <label class="block">
+                        <span class="text-sm font-medium">Nama</span>
+                        <input x-model="userForm.name" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                    </label>
+                    <label class="block">
+                        <span class="text-sm font-medium">Username</span>
+                        <input x-model="userForm.username" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                    </label>
+                    <label class="block">
+                        <span class="text-sm font-medium">Email</span>
+                        <input x-model="userForm.email" type="email" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm">
+                    </label>
+                    <label class="block">
+                        <span class="text-sm font-medium">WhatsApp</span>
+                        <input x-model="userForm.whatsapp_number" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm">
+                    </label>
+                    <label class="block">
+                        <span class="text-sm font-medium" x-text="userForm.id ? 'Password baru' : 'Password awal'"></span>
+                        <input x-model="userForm.password" type="password" :required="!userForm.id"
+                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm">
+                    </label>
+                    <label class="block">
+                        <span class="text-sm font-medium">Status akun</span>
+                        <select x-model="userForm.account_status" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm">
+                            <option value="aktif">Aktif</option>
+                            <option value="tidak_aktif">Tidak aktif</option>
+                        </select>
+                    </label>
+                    <div class="mt-2 flex flex-col-reverse gap-2 sm:col-span-2 sm:flex-row sm:justify-end">
+                        <button type="button" @click="closeFormModal" class="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50">Batal</button>
+                        <button :disabled="actionLoading === 'saveUser'"
+                            class="inline-flex items-center justify-center gap-2 rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60">
+                            <i data-lucide="save" class="h-4 w-4"></i>
+                            <span x-text="actionLoading === 'saveUser' ? 'Menyimpan...' : 'Simpan'"></span>
+                        </button>
+                    </div>
+                </form>
+
+                <form x-show="formModal.type === 'adminPassword'" @submit.prevent="saveAdminPassword" class="grid gap-3">
+                    <div class="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm">
+                        <p class="text-xs uppercase text-zinc-500">Admin</p>
+                        <p class="mt-1 font-medium" x-text="currentUser?.username || '-'"></p>
+                    </div>
+                    <label class="block">
+                        <span class="text-sm font-medium">Password lama</span>
+                        <input x-model="adminPasswordForm.current_password" type="password"
+                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                    </label>
+                    <label class="block">
+                        <span class="text-sm font-medium">Password baru</span>
+                        <input x-model="adminPasswordForm.password" type="password" minlength="8"
+                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                    </label>
+                    <label class="block">
+                        <span class="text-sm font-medium">Ulangi password baru</span>
+                        <input x-model="adminPasswordForm.password_confirmation" type="password" minlength="8"
+                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                    </label>
+                    <div class="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                        <button type="button" @click="closeFormModal" class="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50">Batal</button>
+                        <button :disabled="actionLoading === 'adminPassword'"
+                            class="inline-flex items-center justify-center gap-2 rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60">
+                            <i data-lucide="key-round" class="h-4 w-4"></i>
+                            <span x-text="actionLoading === 'adminPassword' ? 'Menyimpan...' : 'Simpan Password'"></span>
+                        </button>
+                    </div>
+                </form>
+
+                <form x-show="formModal.type === 'plan'" @submit.prevent="savePlan" class="grid gap-3 sm:grid-cols-2">
+                    <label class="block sm:col-span-2">
+                        <span class="text-sm font-medium">Nama paket</span>
+                        <input x-model="planForm.name" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                    </label>
+                    <label class="block">
+                        <span class="text-sm font-medium">Durasi</span>
+                        <select x-model="planForm.duration_type" @change="syncPlanDuration"
+                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm">
+                            <option value="weekly_1">1 minggu</option>
+                            <option value="weekly_2">2 minggu</option>
+                            <option value="monthly_1">1 bulan</option>
+                        </select>
+                    </label>
+                    <label class="block">
+                        <span class="text-sm font-medium">Harga</span>
+                        <input x-model.number="planForm.price" type="number" min="0" step="1000"
+                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                    </label>
+                    <label class="block sm:col-span-2">
+                        <span class="text-sm font-medium">Deskripsi</span>
+                        <textarea x-model="planForm.description" rows="3" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"></textarea>
+                    </label>
+                    <label class="inline-flex items-center gap-2 text-sm sm:col-span-2">
+                        <input x-model="planForm.is_active" type="checkbox" class="rounded border-zinc-300 text-teal-700">
+                        Aktif
+                    </label>
+                    <div class="mt-2 flex flex-col-reverse gap-2 sm:col-span-2 sm:flex-row sm:justify-end">
+                        <button type="button" @click="closeFormModal" class="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50">Batal</button>
+                        <button :disabled="actionLoading === 'savePlan'"
+                            class="inline-flex items-center justify-center gap-2 rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60">
+                            <i data-lucide="save" class="h-4 w-4"></i>
+                            <span x-text="actionLoading === 'savePlan' ? 'Menyimpan...' : 'Simpan'"></span>
+                        </button>
+                    </div>
+                </form>
+
+                <form x-show="formModal.type === 'bank'" @submit.prevent="saveBank" class="grid gap-3 sm:grid-cols-2">
+                    <label class="block">
+                        <span class="text-sm font-medium">Nama bank</span>
+                        <input x-model="bankForm.bank_name" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                    </label>
+                    <label class="block">
+                        <span class="text-sm font-medium">Nomor rekening</span>
+                        <input x-model="bankForm.account_number" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                    </label>
+                    <label class="block sm:col-span-2">
+                        <span class="text-sm font-medium">Nama pemilik</span>
+                        <input x-model="bankForm.account_holder_name" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                    </label>
+                    <label class="block sm:col-span-2">
+                        <span class="text-sm font-medium">Instruksi pembayaran</span>
+                        <textarea x-model="bankForm.payment_instruction" rows="3" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"></textarea>
+                    </label>
+                    <label class="inline-flex items-center gap-2 text-sm sm:col-span-2">
+                        <input x-model="bankForm.is_active" type="checkbox" class="rounded border-zinc-300 text-teal-700">
+                        Aktif
+                    </label>
+                    <div class="mt-2 flex flex-col-reverse gap-2 sm:col-span-2 sm:flex-row sm:justify-end">
+                        <button type="button" @click="closeFormModal" class="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50">Batal</button>
+                        <button :disabled="actionLoading === 'saveBank'"
+                            class="inline-flex items-center justify-center gap-2 rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60">
+                            <i data-lucide="save" class="h-4 w-4"></i>
+                            <span x-text="actionLoading === 'saveBank' ? 'Menyimpan...' : 'Simpan'"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div x-show="paymentDetailOpen" x-transition.opacity @keydown.escape.window="paymentDetailOpen = false"
+            class="fixed inset-0 z-50 grid place-items-stretch bg-black/40 p-0 sm:place-items-center sm:p-4" style="display: none;">
+            <div role="dialog" aria-modal="true"
+                class="h-full max-h-none w-full overflow-y-auto rounded-none bg-white p-5 shadow-lg sm:h-auto sm:max-h-[92vh] sm:max-w-2xl sm:rounded-lg">
+                <div class="mb-4 flex items-center justify-between gap-3">
+                    <h3 class="text-lg font-semibold">Detail Pembayaran</h3>
+                    <button type="button" @click="paymentDetailOpen = false" class="grid h-9 w-9 place-items-center rounded-md border border-zinc-300 hover:bg-zinc-50" aria-label="Tutup detail">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                    </button>
+                </div>
+
+                <template x-if="selectedPayment">
+                    <div class="space-y-4">
+                        <div class="grid gap-3 text-sm sm:grid-cols-2">
+                            <div>
+                                <p class="text-xs uppercase text-zinc-500">Kode</p>
+                                <p class="font-medium" x-text="selectedPayment.payment_code"></p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-zinc-500">Status</p>
+                                <span :class="badgeClass(selectedPayment.status)" class="rounded-full px-2 py-1 text-xs font-medium" x-text="label(selectedPayment.status)"></span>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-zinc-500">User</p>
+                                <p class="font-medium" x-text="`${selectedPayment.user_name || '-'} (${selectedPayment.username || '-'})`"></p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-zinc-500">Paket</p>
+                                <p class="font-medium" x-text="`${selectedPayment.plan_name || '-'} - ${selectedPayment.duration_days || 0} hari`"></p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-zinc-500">Nominal</p>
+                                <p class="font-medium" x-text="money(selectedPayment.amount)"></p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-zinc-500">Rekening</p>
+                                <p class="font-medium" x-text="`${selectedPayment.bank_name || '-'} ${selectedPayment.account_number || ''}`"></p>
+                                <p class="text-xs text-zinc-500" x-text="selectedPayment.account_holder_name || '-'"></p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-zinc-500">Dibuat</p>
+                                <p class="font-medium" x-text="date(selectedPayment.created_at)"></p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-zinc-500">Dikirim</p>
+                                <p class="font-medium" x-text="date(selectedPayment.submitted_at)"></p>
+                            </div>
+                        </div>
+
+                        <div class="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm">
+                            <p class="text-xs uppercase text-zinc-500">Catatan user</p>
+                            <p class="mt-1 whitespace-pre-line" x-text="selectedPayment.user_note || '-'"></p>
+                        </div>
+
+                        <div class="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                            <label class="block">
+                                <span class="text-sm font-medium">Catatan admin</span>
+                                <textarea x-model="selectedPayment.admin_note" rows="3"
+                                    class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"></textarea>
+                            </label>
+                            <a x-show="selectedPayment.has_proof_file" :href="proofLink(selectedPayment.id)" target="_blank" rel="noopener"
+                                class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 px-4 py-2 text-sm font-semibold hover:bg-zinc-50">
+                                <i data-lucide="file-search" class="h-4 w-4"></i>
+                                Lihat bukti
+                            </a>
+                        </div>
+
+                        <div class="flex flex-col-reverse gap-2 border-t border-zinc-200 pt-4 sm:flex-row sm:justify-end">
+                            <button type="button" @click="paymentDetailOpen = false" class="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50">Tutup</button>
+                            <button @click="confirmPayment('reject')" :disabled="selectedPayment.status !== 'menunggu_konfirmasi_admin'"
+                                class="inline-flex items-center justify-center gap-2 rounded-md bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50">
+                                <i data-lucide="x-circle" class="h-4 w-4"></i>
+                                Tolak
+                            </button>
+                            <button @click="confirmPayment('approve')" :disabled="selectedPayment.status !== 'menunggu_konfirmasi_admin'"
+                                class="inline-flex items-center justify-center gap-2 rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50">
+                                <i data-lucide="check-circle" class="h-4 w-4"></i>
+                                Setujui
+                            </button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <div x-show="confirm.open" x-transition.opacity @keydown.escape.window="confirm.open = false"
+            class="fixed inset-0 z-[60] grid place-items-stretch bg-black/40 p-0 sm:place-items-center sm:p-4" style="display: none;">
+            <div role="dialog" aria-modal="true" class="h-full w-full overflow-y-auto rounded-none bg-white p-5 shadow-lg sm:h-auto sm:max-w-md sm:rounded-lg">
+                <h3 class="text-lg font-semibold" x-text="confirm.title"></h3>
+                <p class="mt-2 text-sm text-zinc-600" x-text="confirm.message"></p>
+                <div class="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                    <button @click="confirm.open = false" class="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50">Batal</button>
+                    <button @click="runConfirm" :disabled="actionLoading === 'confirm'"
+                        class="rounded-md px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                        :class="confirm.buttonClass"
+                        x-text="actionLoading === 'confirm' ? 'Memproses...' : 'Konfirmasi'"></button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function adminDashboard() {
+            return {
+                apiBase: window.SAAS_CONFIG?.API_BASE || '../backend/api/index.php?action=',
+                loading: false,
+                actionLoading: '',
+                currentUser: null,
+                sidebarOpen: false,
+                tab: 'overview',
+                message: '',
+                messageTab: '',
+                error: '',
+                errorTab: '',
+                summary: {},
+                latestPayments: [],
+                users: [],
+                plans: [],
+                bankAccounts: [],
+                payments: [],
+                paymentStatusFilter: 'all',
+                selectedPayment: null,
+                paymentDetailOpen: false,
+                nav: [
+                    { key: 'overview', label: 'Dashboard', icon: 'layout-dashboard' },
+                    { key: 'users', label: 'User', icon: 'users' },
+                    { key: 'plans', label: 'Paket', icon: 'calendar-days' },
+                    { key: 'banks', label: 'Rekening', icon: 'landmark' },
+                    { key: 'payments', label: 'Pembayaran', icon: 'receipt' },
+                ],
+                loginForm: { login: '', password: '', role: 'admin' },
+                userForm: {},
+                adminPasswordForm: {},
+                planForm: {},
+                bankForm: {},
+                formModal: { open: false, type: '' },
+                confirm: { open: false, title: '', message: '', buttonClass: 'bg-teal-700 hover:bg-teal-800', action: '', payload: null },
+
+                async init() {
+                    await this.checkSession();
+                    this.refreshIcons();
+                },
+                refreshIcons() {
+                    this.$nextTick(() => window.lucide?.createIcons());
+                },
+                activeTitle() {
+                    return this.nav.find(item => item.key === this.tab)?.label || 'Dashboard';
+                },
+                setMessage(message, tab = this.tab) {
+                    this.message = message;
+                    this.messageTab = tab;
+                },
+                setError(message, tab = this.tab) {
+                    this.error = message;
+                    this.errorTab = tab;
+                },
+                clearNotice(tab = this.tab) {
+                    this.message = '';
+                    this.error = '';
+                    this.messageTab = tab;
+                    this.errorTab = tab;
+                },
+                switchTab(key) {
+                    this.tab = key;
+                    this.sidebarOpen = false;
+                    this.clearNotice(key);
+                    this.refreshIcons();
+                },
+                modalTitle() {
+                    if (this.formModal.type === 'user') {
+                        return this.userForm.id ? 'Edit User' : 'Tambah User';
+                    }
+                    if (this.formModal.type === 'adminPassword') {
+                        return 'Ubah Password Admin';
+                    }
+                    if (this.formModal.type === 'plan') {
+                        return this.planForm.id ? 'Edit Paket' : 'Tambah Paket';
+                    }
+                    if (this.formModal.type === 'bank') {
+                        return this.bankForm.id ? 'Edit Rekening' : 'Tambah Rekening';
+                    }
+                    return 'Form';
+                },
+                closeFormModal() {
+                    this.formModal = { open: false, type: '' };
+                },
+                durationDays(type) {
+                    return { weekly_1: 7, weekly_2: 14, monthly_1: 30 }[type] || 7;
+                },
+                syncPlanDuration() {
+                    this.planForm.duration_days = this.durationDays(this.planForm.duration_type);
+                },
+                openUserForm() {
+                    this.userForm = {
+                        id: null,
+                        name: '',
+                        username: '',
+                        email: '',
+                        password: '',
+                        whatsapp_number: '',
+                        account_status: 'aktif',
+                    };
+                    this.formModal = { open: true, type: 'user' };
+                    this.refreshIcons();
+                },
+                editUser(user) {
+                    this.userForm = {
+                        id: user.id,
+                        name: user.name || '',
+                        username: user.username || '',
+                        email: user.email || '',
+                        password: '',
+                        whatsapp_number: user.whatsapp_number || '',
+                        account_status: user.account_status || 'aktif',
+                    };
+                    this.formModal = { open: true, type: 'user' };
+                    this.refreshIcons();
+                },
+                openAdminPasswordForm() {
+                    this.adminPasswordForm = {
+                        current_password: '',
+                        password: '',
+                        password_confirmation: '',
+                    };
+                    this.formModal = { open: true, type: 'adminPassword' };
+                    this.refreshIcons();
+                },
+                openPlanForm() {
+                    this.planForm = {
+                        id: null,
+                        name: '',
+                        duration_type: 'weekly_1',
+                        duration_days: 7,
+                        price: '',
+                        description: '',
+                        is_active: true,
+                    };
+                    this.formModal = { open: true, type: 'plan' };
+                    this.refreshIcons();
+                },
+                editPlan(plan) {
+                    this.planForm = {
+                        id: plan.id,
+                        name: plan.name || '',
+                        duration_type: plan.duration_type || 'weekly_1',
+                        duration_days: Number(plan.duration_days || 7),
+                        price: Number(plan.price || 0),
+                        description: plan.description || '',
+                        is_active: Number(plan.is_active) === 1,
+                    };
+                    this.formModal = { open: true, type: 'plan' };
+                    this.refreshIcons();
+                },
+                openBankForm() {
+                    this.bankForm = {
+                        id: null,
+                        bank_name: '',
+                        account_number: '',
+                        account_holder_name: '',
+                        payment_instruction: '',
+                        is_active: true,
+                    };
+                    this.formModal = { open: true, type: 'bank' };
+                    this.refreshIcons();
+                },
+                editBank(bank) {
+                    this.bankForm = {
+                        id: bank.id,
+                        bank_name: bank.bank_name || '',
+                        account_number: bank.account_number || '',
+                        account_holder_name: bank.account_holder_name || '',
+                        payment_instruction: bank.payment_instruction || '',
+                        is_active: Number(bank.is_active) === 1,
+                    };
+                    this.formModal = { open: true, type: 'bank' };
+                    this.refreshIcons();
+                },
+                async api(action, options = {}) {
+                    const response = await fetch(this.apiBase + action, {
+                        credentials: 'include',
+                        headers: options.body ? { 'Content-Type': 'application/json' } : {},
+                        ...options,
+                    });
+                    const data = await response.json();
+                    if (!response.ok || data.ok === false) {
+                        throw new Error(data.message || 'Request gagal.');
+                    }
+                    return data;
+                },
+                async post(action, payload) {
+                    return this.api(action, { method: 'POST', body: JSON.stringify(payload) });
+                },
+                async checkSession() {
+                    try {
+                        const data = await this.api('me');
+                        if (data.user?.role === 'admin') {
+                            this.currentUser = data.user;
+                            await this.loadAll();
+                        }
+                    } catch (_) {
+                        this.currentUser = null;
+                    }
+                },
+                async login() {
+                    this.loading = true;
+                    this.error = '';
+                    try {
+                        const data = await this.post('login', this.loginForm);
+                        this.currentUser = data.user;
+                        await this.loadAll();
+                    } catch (error) {
+                        this.error = error.message;
+                    } finally {
+                        this.loading = false;
+                        this.refreshIcons();
+                    }
+                },
+                async logout() {
+                    await this.post('logout', {});
+                    this.currentUser = null;
+                    this.sidebarOpen = false;
+                    this.message = '';
+                    this.error = '';
+                    this.loginForm.password = '';
+                },
+                async loadAll() {
+                    this.actionLoading = 'loadAll';
+                    this.setError('');
+                    try {
+                        const [dashboard, users, plans, banks, payments] = await Promise.all([
+                            this.api('admin-dashboard'),
+                            this.api('admin-users'),
+                            this.api('admin-plans'),
+                            this.api('admin-bank-accounts'),
+                            this.api('admin-payments'),
+                        ]);
+                        this.summary = dashboard.summary || {};
+                        this.latestPayments = dashboard.latest_payments || [];
+                        this.users = users.users || [];
+                        this.plans = plans.plans || [];
+                        this.bankAccounts = banks.bank_accounts || [];
+                        this.payments = payments.payments || [];
+                    } catch (error) {
+                        this.setError(error.message);
+                    } finally {
+                        this.actionLoading = '';
+                        this.refreshIcons();
+                    }
+                },
+                async saveUser() {
+                    const noticeTab = this.tab;
+                    this.clearNotice(noticeTab);
+                    this.actionLoading = 'saveUser';
+                    try {
+                        const payload = { ...this.userForm };
+                        if (!payload.password) {
+                            payload.password = null;
+                        }
+                        const data = await this.post('admin-user-save', payload);
+                        this.setMessage(data.message, noticeTab);
+                        this.closeFormModal();
+                        await this.loadAll();
+                    } catch (error) {
+                        this.setError(error.message, noticeTab);
+                    } finally {
+                        this.actionLoading = '';
+                        this.refreshIcons();
+                    }
+                },
+                async saveAdminPassword() {
+                    const noticeTab = this.tab;
+                    this.clearNotice(noticeTab);
+
+                    if ((this.adminPasswordForm.password || '').length < 8) {
+                        this.setError('Password minimal 8 karakter.', noticeTab);
+                        return;
+                    }
+
+                    if (this.adminPasswordForm.password !== this.adminPasswordForm.password_confirmation) {
+                        this.setError('Konfirmasi password tidak sama.', noticeTab);
+                        return;
+                    }
+
+                    this.actionLoading = 'adminPassword';
+                    try {
+                        const payload = {
+                            current_password: this.adminPasswordForm.current_password,
+                            password: this.adminPasswordForm.password,
+                        };
+                        const data = await this.post('admin-password-reset', payload);
+                        this.setMessage(data.message, noticeTab);
+                        this.closeFormModal();
+                    } catch (error) {
+                        this.setError(error.message, noticeTab);
+                    } finally {
+                        this.actionLoading = '';
+                        this.refreshIcons();
+                    }
+                },
+                async savePlan() {
+                    const noticeTab = this.tab;
+                    this.clearNotice(noticeTab);
+                    this.actionLoading = 'savePlan';
+                    try {
+                        this.syncPlanDuration();
+                        const data = await this.post('admin-plan-save', this.planForm);
+                        this.setMessage(data.message, noticeTab);
+                        this.closeFormModal();
+                        await this.loadAll();
+                    } catch (error) {
+                        this.setError(error.message, noticeTab);
+                    } finally {
+                        this.actionLoading = '';
+                        this.refreshIcons();
+                    }
+                },
+                async saveBank() {
+                    const noticeTab = this.tab;
+                    this.clearNotice(noticeTab);
+                    this.actionLoading = 'saveBank';
+                    try {
+                        const data = await this.post('admin-bank-account-save', this.bankForm);
+                        this.setMessage(data.message, noticeTab);
+                        this.closeFormModal();
+                        await this.loadAll();
+                    } catch (error) {
+                        this.setError(error.message, noticeTab);
+                    } finally {
+                        this.actionLoading = '';
+                        this.refreshIcons();
+                    }
+                },
+                confirmStatus(user) {
+                    const nextStatus = user.account_status === 'aktif' ? 'tidak_aktif' : 'aktif';
+                    this.confirm = {
+                        open: true,
+                        title: nextStatus === 'aktif' ? 'Aktifkan user?' : 'Nonaktifkan user?',
+                        message: `Status akun ${user.username} akan diubah menjadi ${this.label(nextStatus)}.`,
+                        buttonClass: nextStatus === 'aktif' ? 'bg-teal-700 hover:bg-teal-800' : 'bg-red-700 hover:bg-red-800',
+                        action: 'status',
+                        payload: { id: user.id, account_status: nextStatus },
+                    };
+                },
+                async loadPaymentDetail(id) {
+                    this.actionLoading = 'payment-' + id;
+                    this.clearNotice('payments');
+                    try {
+                        const data = await this.api('admin-payment-detail&id=' + encodeURIComponent(id));
+                        this.selectedPayment = data.payment;
+                        this.paymentDetailOpen = true;
+                    } catch (error) {
+                        this.setError(error.message, 'payments');
+                    } finally {
+                        this.actionLoading = '';
+                        this.refreshIcons();
+                    }
+                },
+                confirmPayment(type) {
+                    if (!this.selectedPayment) return;
+                    this.confirm = {
+                        open: true,
+                        title: type === 'approve' ? 'Setujui pembayaran?' : 'Tolak pembayaran?',
+                        message: type === 'approve'
+                            ? 'Pembayaran valid akan mengaktifkan atau memperpanjang langganan user.'
+                            : 'Pembayaran akan ditandai ditolak. Catatan admin wajib diisi untuk penolakan.',
+                        buttonClass: type === 'approve' ? 'bg-teal-700 hover:bg-teal-800' : 'bg-red-700 hover:bg-red-800',
+                        action: type,
+                        payload: {
+                            id: this.selectedPayment.id,
+                            admin_note: this.selectedPayment.admin_note || '',
+                        },
+                    };
+                },
+                async runConfirm() {
+                    this.actionLoading = 'confirm';
+                    const action = this.confirm.action;
+                    const payload = this.confirm.payload;
+                    const noticeTab = this.tab;
+                    try {
+                        let endpoint = '';
+                        if (action === 'status') endpoint = 'admin-user-status';
+                        if (action === 'approve') endpoint = 'admin-payment-approve';
+                        if (action === 'reject') endpoint = 'admin-payment-reject';
+
+                        const data = await this.post(endpoint, payload);
+                        this.setMessage(data.message, noticeTab);
+                        this.confirm.open = false;
+                        this.paymentDetailOpen = false;
+                        await this.loadAll();
+                    } catch (error) {
+                        this.setError(error.message, noticeTab);
+                        this.confirm.open = false;
+                    } finally {
+                        this.actionLoading = '';
+                        this.refreshIcons();
+                    }
+                },
+                filteredPayments() {
+                    if (this.paymentStatusFilter === 'all') {
+                        return this.payments;
+                    }
+                    return this.payments.filter(payment => payment.status === this.paymentStatusFilter);
+                },
+                summaryCards() {
+                    return [
+                        { label: 'Total user', value: this.summary.total_users || 0 },
+                        { label: 'User aktif', value: this.summary.active_users || 0 },
+                        { label: 'Menunggu konfirmasi', value: this.summary.pending_payments || 0 },
+                        { label: 'Pembayaran disetujui', value: this.summary.approved_payments || 0 },
+                        { label: 'Paket aktif', value: this.summary.active_plans || 0 },
+                        { label: 'Rekening aktif', value: this.summary.active_bank_accounts || 0 },
+                    ];
+                },
+                proofLink(paymentId) {
+                    return this.apiBase + 'payment-proof&id=' + encodeURIComponent(paymentId);
+                },
+                money(value) {
+                    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0));
+                },
+                date(value) {
+                    if (!value) return '-';
+                    return new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(String(value).replace(' ', 'T')));
+                },
+                label(value) {
+                    return {
+                        aktif: 'Aktif',
+                        tidak_aktif: 'Tidak aktif',
+                        belum_aktif: 'Belum aktif',
+                        berakhir: 'Berakhir',
+                        menunggu_pembayaran: 'Menunggu pembayaran',
+                        menunggu_konfirmasi_admin: 'Menunggu konfirmasi',
+                        disetujui: 'Disetujui',
+                        ditolak: 'Ditolak',
+                        dibatalkan: 'Dibatalkan',
+                        kedaluwarsa: 'Kedaluwarsa',
+                    }[value] || value || '-';
+                },
+                badgeClass(value) {
+                    const styles = {
+                        aktif: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+                        disetujui: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+                        menunggu_konfirmasi_admin: 'bg-amber-50 text-amber-700 border border-amber-200',
+                        menunggu_pembayaran: 'bg-sky-50 text-sky-700 border border-sky-200',
+                        belum_aktif: 'bg-sky-50 text-sky-700 border border-sky-200',
+                        tidak_aktif: 'bg-zinc-100 text-zinc-700 border border-zinc-200',
+                        berakhir: 'bg-zinc-100 text-zinc-700 border border-zinc-200',
+                        ditolak: 'bg-red-50 text-red-700 border border-red-200',
+                        dibatalkan: 'bg-zinc-100 text-zinc-700 border border-zinc-200',
+                        kedaluwarsa: 'bg-zinc-100 text-zinc-700 border border-zinc-200',
+                    };
+                    return styles[value] || 'bg-zinc-100 text-zinc-700 border border-zinc-200';
+                },
+            };
+        }
+    </script>
+</body>
+
+</html>
