@@ -235,6 +235,9 @@
                     </div>
 
                     <div class="rounded-lg border border-zinc-200 bg-white">
+                        <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                            <h3 class="font-semibold">Riwayat Langganan</h3>
+                        </div>
                         <div class="overflow-x-auto">
                             <table class="w-full min-w-[700px] text-left text-sm">
                                 <thead class="bg-zinc-50 text-xs uppercase text-zinc-500">
@@ -259,32 +262,18 @@
                         </div>
                         <div x-show="subscriptions.length === 0" class="px-4 py-8 text-sm text-zinc-500">Belum ada langganan aktif.</div>
                     </div>
-                </section>
 
-                <section x-show="tab === 'payments'" class="space-y-4">
                     <div class="rounded-lg border border-zinc-200 bg-white">
                         <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                             <h3 class="font-semibold">Riwayat Pembayaran</h3>
-                            <div class="flex flex-wrap items-center gap-2 sm:justify-end">
-                                <button type="button" @click="openCreatePayment()"
-                                    class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
-                                    <i data-lucide="receipt" class="h-4 w-4"></i>
-                                    Buat Pembayaran
-                                </button>
-                                <button type="button" @click="openSubmitPayment()"
-                                    class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-semibold hover:bg-zinc-50">
-                                    <i data-lucide="upload" class="h-4 w-4"></i>
-                                    Kirim Bukti
-                                </button>
-                                <button @click="loadDashboard"
-                                    class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50">
-                                    <i data-lucide="refresh-cw" class="h-4 w-4"></i>
-                                    Muat ulang
-                                </button>
-                            </div>
+                            <button @click="loadDashboard"
+                                class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50">
+                                <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                                Muat ulang
+                            </button>
                         </div>
                         <div class="overflow-x-auto">
-                            <table class="w-full min-w-[900px] text-left text-sm">
+                            <table class="w-full min-w-[860px] text-left text-sm">
                                 <thead class="bg-zinc-50 text-xs uppercase text-zinc-500">
                                     <tr>
                                         <th class="px-4 py-3">Kode</th>
@@ -292,9 +281,8 @@
                                         <th class="px-4 py-3">Nominal</th>
                                         <th class="px-4 py-3">Rekening</th>
                                         <th class="px-4 py-3">Status</th>
-                                        <th class="px-4 py-3">Bukti</th>
                                         <th class="px-4 py-3">Catatan admin</th>
-                                        <th class="px-4 py-3">Aksi</th>
+                                        <th class="px-4 py-3">Dibuat</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -308,24 +296,8 @@
                                                 <p class="text-xs text-zinc-500" x-text="payment.account_number"></p>
                                             </td>
                                             <td class="px-4 py-3"><span :class="badgeClass(payment.status)" class="rounded-full px-2 py-1 text-xs font-medium" x-text="label(payment.status)"></span></td>
-                                            <td class="px-4 py-3">
-                                                <template x-if="payment.has_proof_file">
-                                                    <a :href="proofLink(payment.id)" target="_blank" rel="noopener"
-                                                        class="inline-flex items-center gap-1 rounded-md border border-zinc-300 px-2 py-1 text-xs hover:bg-zinc-50">
-                                                        <i data-lucide="file-search" class="h-3.5 w-3.5"></i>
-                                                        Lihat
-                                                    </a>
-                                                </template>
-                                                <span x-show="!payment.has_proof_file">-</span>
-                                            </td>
                                             <td class="px-4 py-3" x-text="payment.admin_note || '-'"></td>
-                                            <td class="px-4 py-3">
-                                                <button type="button" @click="openSubmitPayment(payment.id)"
-                                                    :disabled="!['menunggu_pembayaran', 'ditolak'].includes(payment.status)"
-                                                    class="rounded-md border border-zinc-300 px-2 py-1 text-xs hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50">
-                                                    Konfirmasi
-                                                </button>
-                                            </td>
+                                            <td class="px-4 py-3" x-text="date(payment.created_at)"></td>
                                         </tr>
                                     </template>
                                 </tbody>
@@ -470,6 +442,16 @@
                             </template>
                         </select>
                     </label>
+                    <label class="block sm:col-span-2">
+                        <span class="text-sm font-medium">Bukti transfer</span>
+                        <input x-ref="paymentProofInput" @change="setProofFile($event)" type="file" accept=".jpg,.jpeg,.png,.pdf"
+                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                        <span x-show="proofFileName" class="mt-1 block text-xs text-zinc-500" x-text="proofFileName"></span>
+                    </label>
+                    <label class="block sm:col-span-2">
+                        <span class="text-sm font-medium">Catatan</span>
+                        <textarea x-model="paymentForm.user_note" rows="3" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"></textarea>
+                    </label>
                     <template x-if="selectedPlan() || selectedBank()">
                         <div class="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm sm:col-span-2">
                             <div class="grid gap-2">
@@ -496,40 +478,10 @@
                     </div>
                     <div class="mt-2 flex flex-col-reverse gap-2 sm:col-span-2 sm:flex-row sm:justify-end">
                         <button type="button" @click="closeFormModal" class="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50">Batal</button>
-                        <button :disabled="actionLoading === 'createPayment'"
-                            class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800 disabled:cursor-not-allowed disabled:opacity-60">
-                            <i data-lucide="receipt" class="h-4 w-4"></i>
-                            <span x-text="actionLoading === 'createPayment' ? 'Membuat...' : 'Buat'"></span>
-                        </button>
-                    </div>
-                </form>
-
-                <form x-show="formModal.type === 'submitPayment'" @submit.prevent="submitPayment" class="grid gap-3 sm:grid-cols-2">
-                    <label class="block">
-                        <span class="text-sm font-medium">Pembayaran</span>
-                        <select x-model.number="submitForm.id" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
-                            <option value="">Pilih pembayaran</option>
-                            <template x-for="payment in submittablePayments()" :key="payment.id">
-                                <option :value="payment.id" x-text="`${payment.payment_code} - ${label(payment.status)}`"></option>
-                            </template>
-                        </select>
-                    </label>
-                    <label class="block">
-                        <span class="text-sm font-medium">Bukti pembayaran</span>
-                        <input @change="setProofFile($event)" type="file" accept=".jpg,.jpeg,.png,.pdf"
-                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm">
-                        <span x-show="proofFileName" class="mt-1 block text-xs text-zinc-500" x-text="proofFileName"></span>
-                    </label>
-                    <label class="block sm:col-span-2">
-                        <span class="text-sm font-medium">Catatan</span>
-                        <textarea x-model="submitForm.user_note" rows="3" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"></textarea>
-                    </label>
-                    <div class="mt-2 flex flex-col-reverse gap-2 sm:col-span-2 sm:flex-row sm:justify-end">
-                        <button type="button" @click="closeFormModal" class="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50">Batal</button>
-                        <button :disabled="actionLoading === 'submitPayment'"
+                        <button :disabled="actionLoading === 'createPayment' || plans.length === 0 || bankAccounts.length === 0"
                             class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800 disabled:cursor-not-allowed disabled:opacity-60">
                             <i data-lucide="upload" class="h-4 w-4"></i>
-                            <span x-text="actionLoading === 'submitPayment' ? 'Mengirim...' : 'Kirim'"></span>
+                            <span x-text="actionLoading === 'createPayment' ? 'Mengirim...' : 'Kirim Pembayaran'"></span>
                         </button>
                     </div>
                 </form>
@@ -604,13 +556,11 @@
                     { key: 'overview', label: 'Dashboard', icon: 'layout-dashboard' },
                     { key: 'profile', label: 'Profil', icon: 'user' },
                     { key: 'subscriptions', label: 'Langganan', icon: 'calendar-days' },
-                    { key: 'payments', label: 'Pembayaran', icon: 'receipt' },
                     { key: 'telegram', label: 'Telegram', icon: 'send' },
                     { key: 'guest', label: 'Guest', icon: 'link' },
                 ],
                 profileForm: {},
-                paymentForm: { subscription_plan_id: '', bank_account_id: '' },
-                submitForm: { id: '', proof_file: null, user_note: '' },
+                paymentForm: { subscription_plan_id: '', bank_account_id: '', proof_file: null, user_note: '' },
                 proofFileName: '',
                 guestForm: { is_active: false },
                 formModal: { open: false, type: '' },
@@ -649,7 +599,6 @@
                     return {
                         profile: 'Edit Profil',
                         payment: 'Buat Pembayaran',
-                        submitPayment: 'Kirim Konfirmasi',
                         telegram: 'Konfigurasi Telegram',
                         guest: 'Konfigurasi Guest',
                     }[this.formModal.type] || 'Form';
@@ -674,18 +623,23 @@
                     this.formModal = { open: true, type: 'telegram' };
                     this.refreshIcons();
                 },
-                openCreatePayment(planId = null) {
+                resetPaymentForm(planId = '') {
                     this.paymentForm = {
                         subscription_plan_id: planId || '',
                         bank_account_id: '',
+                        proof_file: null,
+                        user_note: '',
                     };
-                    this.formModal = { open: true, type: 'payment' };
-                    this.refreshIcons();
-                },
-                openSubmitPayment(paymentId = null) {
-                    this.submitForm = { id: paymentId || '', proof_file: null, user_note: '' };
                     this.proofFileName = '';
-                    this.formModal = { open: true, type: 'submitPayment' };
+                    this.$nextTick(() => {
+                        if (this.$refs.paymentProofInput) {
+                            this.$refs.paymentProofInput.value = '';
+                        }
+                    });
+                },
+                openCreatePayment(planId = null) {
+                    this.resetPaymentForm(planId || '');
+                    this.formModal = { open: true, type: 'payment' };
                     this.refreshIcons();
                 },
                 openGuestForm() {
@@ -765,36 +719,20 @@
                 async createPayment() {
                     const noticeTab = this.tab;
                     this.clearNotice(noticeTab);
+                    if (!this.paymentForm.proof_file) {
+                        this.setError('Bukti transfer wajib diunggah.', noticeTab);
+                        return;
+                    }
                     this.actionLoading = 'createPayment';
                     try {
-                        const data = await this.post('user-payment-create', this.paymentForm);
-                        this.setMessage(data.message, noticeTab);
-                        this.submitForm.id = data.payment.id;
-                        this.paymentForm = { subscription_plan_id: '', bank_account_id: '' };
-                        this.closeFormModal();
-                        await this.loadDashboard();
-                    } catch (error) {
-                        this.setError(error.message, noticeTab);
-                    } finally {
-                        this.actionLoading = '';
-                        this.refreshIcons();
-                    }
-                },
-                async submitPayment() {
-                    const noticeTab = this.tab;
-                    this.clearNotice(noticeTab);
-                    this.actionLoading = 'submitPayment';
-                    try {
                         const formData = new FormData();
-                        formData.append('id', this.submitForm.id);
-                        formData.append('user_note', this.submitForm.user_note || '');
-                        if (this.submitForm.proof_file) {
-                            formData.append('proof_file', this.submitForm.proof_file);
-                        }
-                        const data = await this.api('user-payment-submit', { method: 'POST', body: formData });
+                        formData.append('subscription_plan_id', this.paymentForm.subscription_plan_id);
+                        formData.append('bank_account_id', this.paymentForm.bank_account_id);
+                        formData.append('user_note', this.paymentForm.user_note || '');
+                        formData.append('proof_file', this.paymentForm.proof_file);
+                        const data = await this.api('user-payment-create', { method: 'POST', body: formData });
                         this.setMessage(data.message, noticeTab);
-                        this.submitForm = { id: '', proof_file: null, user_note: '' };
-                        this.proofFileName = '';
+                        this.resetPaymentForm();
                         this.closeFormModal();
                         await this.loadDashboard();
                     } catch (error) {
@@ -825,9 +763,6 @@
                     await navigator.clipboard.writeText(this.guestPage.link);
                     this.setMessage('Link halaman guest disalin.');
                 },
-                submittablePayments() {
-                    return this.payments.filter(payment => ['menunggu_pembayaran', 'ditolak'].includes(payment.status));
-                },
                 selectedPlan() {
                     return this.plans.find(plan => Number(plan.id) === Number(this.paymentForm.subscription_plan_id)) || null;
                 },
@@ -836,11 +771,8 @@
                 },
                 setProofFile(event) {
                     const file = event.target.files[0] || null;
-                    this.submitForm.proof_file = file;
+                    this.paymentForm.proof_file = file;
                     this.proofFileName = file ? file.name : '';
-                },
-                proofLink(paymentId) {
-                    return this.apiBase + 'payment-proof&id=' + encodeURIComponent(paymentId);
                 },
                 money(value) {
                     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0));
