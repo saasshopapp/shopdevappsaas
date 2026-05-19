@@ -256,7 +256,7 @@
                             </button>
                         </div>
                         <div class="overflow-x-auto">
-                            <table class="w-full min-w-[720px] text-left text-sm">
+                            <table class="w-full min-w-[800px] text-left text-sm">
                                 <thead class="bg-zinc-50 text-xs uppercase text-zinc-500">
                                     <tr>
                                         <th class="px-4 py-3">Kode</th>
@@ -264,6 +264,7 @@
                                         <th class="px-4 py-3">Nominal</th>
                                         <th class="px-4 py-3">Status</th>
                                         <th class="px-4 py-3">Tanggal</th>
+                                        <th class="px-4 py-3">Detail</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -280,6 +281,13 @@
                                                 <p x-show="payment.status === 'ditolak' && payment.admin_note" class="mt-2 max-w-[280px] text-xs leading-5 text-red-700" x-text="payment.admin_note"></p>
                                             </td>
                                             <td class="px-4 py-3" x-text="date(payment.submitted_at || payment.created_at)"></td>
+                                            <td class="px-4 py-3">
+                                                <button type="button" @click="openPaymentDetail(payment)"
+                                                    class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-xs font-medium hover:bg-zinc-50">
+                                                    <i data-lucide="eye" class="h-3.5 w-3.5"></i>
+                                                    Detail
+                                                </button>
+                                            </td>
                                         </tr>
                                     </template>
                                 </tbody>
@@ -405,38 +413,45 @@
                     </div>
                 </form>
 
-                <form x-show="formModal.type === 'payment'" @submit.prevent="createPayment" class="grid gap-3 sm:grid-cols-2">
-                    <label class="block">
-                        <span class="text-sm font-medium">Paket</span>
-                        <select x-model.number="paymentForm.subscription_plan_id" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
-                            <option value="">Pilih paket</option>
-                            <template x-for="plan in plans" :key="plan.id">
-                                <option :value="plan.id" x-text="`${plan.name} - ${money(plan.price)}`"></option>
-                            </template>
-                        </select>
-                    </label>
-                    <label class="block">
-                        <span class="text-sm font-medium">Rekening tujuan</span>
-                        <select x-model.number="paymentForm.bank_account_id" @change="refreshIcons" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
-                            <option value="">Pilih rekening</option>
-                            <template x-for="bank in bankAccounts" :key="bank.id">
-                                <option :value="bank.id" x-text="`${bank.bank_name} - ${bank.account_number}`"></option>
-                            </template>
-                        </select>
-                    </label>
+                <form x-show="formModal.type === 'payment'" @submit.prevent="createPayment" class="space-y-4">
+                    <div class="grid gap-3 sm:grid-cols-2">
+                        <label class="block">
+                            <span class="text-sm font-medium">Paket</span>
+                            <select x-model.number="paymentForm.subscription_plan_id" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                                <option value="">Pilih paket</option>
+                                <template x-for="plan in plans" :key="plan.id">
+                                    <option :value="plan.id" x-text="`${plan.name} - ${money(plan.price)}`"></option>
+                                </template>
+                            </select>
+                        </label>
+                        <label class="block">
+                            <span class="text-sm font-medium">Rekening tujuan</span>
+                            <select x-model.number="paymentForm.bank_account_id" @change="refreshIcons" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                                <option value="">Pilih rekening</option>
+                                <template x-for="bank in bankAccounts" :key="bank.id">
+                                    <option :value="bank.id" x-text="`${bank.bank_name} - ${bank.account_number}`"></option>
+                                </template>
+                            </select>
+                        </label>
+                    </div>
+
                     <template x-if="selectedPlan() || selectedBank()">
-                        <div class="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm sm:col-span-2">
-                            <div class="grid gap-2">
-                                <div class="flex items-center justify-between gap-3">
-                                    <span class="text-zinc-500">Paket</span>
-                                    <span class="text-right font-medium" x-text="selectedPlan()?.name || '-'"></span>
+                        <div class="rounded-md border border-zinc-200 bg-zinc-50 p-4 text-sm">
+                            <div class="mb-3 flex items-center gap-2">
+                                <i data-lucide="receipt" class="h-4 w-4 text-cyan-700"></i>
+                                <h4 class="font-semibold">Ringkasan Transfer</h4>
+                            </div>
+                            <div class="divide-y divide-zinc-200">
+                                <div class="flex items-center justify-between gap-3 py-2">
+                                    <span class="shrink-0 text-zinc-500">Paket</span>
+                                    <span class="min-w-0 truncate text-right font-medium" x-text="selectedPlan()?.name || '-'"></span>
                                 </div>
-                                <div class="flex items-center justify-between gap-3">
-                                    <span class="text-zinc-500">Nominal</span>
+                                <div class="flex items-center justify-between gap-3 py-2">
+                                    <span class="shrink-0 text-zinc-500">Nominal</span>
                                     <span class="text-right font-semibold" x-text="selectedPlan() ? money(selectedPlan().price) : '-'"></span>
                                 </div>
-                                <div class="flex items-center justify-between gap-3">
-                                    <span class="text-zinc-500">Rekening</span>
+                                <div class="flex items-center justify-between gap-3 py-2">
+                                    <span class="shrink-0 text-zinc-500">Rekening</span>
                                     <div class="flex min-w-0 items-center justify-end gap-2">
                                         <span class="truncate text-right font-medium" x-text="selectedBank() ? `${selectedBank().bank_name} ${selectedBank().account_number}` : '-'"></span>
                                         <button x-show="selectedBank()" type="button" @click="copySelectedBankNumber"
@@ -446,30 +461,25 @@
                                         </button>
                                     </div>
                                 </div>
-                                <div x-show="selectedBank()?.account_holder_name" class="flex items-center justify-between gap-3">
-                                    <span class="text-zinc-500">Atas nama</span>
-                                    <span class="text-right font-medium" x-text="selectedBank()?.account_holder_name"></span>
+                                <div x-show="selectedBank()?.account_holder_name" class="flex items-center justify-between gap-3 py-2">
+                                    <span class="shrink-0 text-zinc-500">Atas nama</span>
+                                    <span class="min-w-0 truncate text-right font-medium" x-text="selectedBank()?.account_holder_name"></span>
                                 </div>
-                                <p x-show="selectedBank()?.payment_instruction" class="border-t border-zinc-200 pt-2 text-xs leading-5 text-zinc-600"
-                                    x-text="selectedBank()?.payment_instruction"></p>
                             </div>
                         </div>
                     </template>
-                    <label class="block sm:col-span-2">
+
+                    <label class="block">
                         <span class="text-sm font-medium">Bukti transfer</span>
                         <input x-ref="paymentProofInput" @change="setProofFile($event)" type="file" accept=".jpg,.jpeg,.png,.pdf"
                             class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
                         <span x-show="proofFileName" class="mt-1 block text-xs text-zinc-500" x-text="proofFileName"></span>
                     </label>
-                    <label class="block sm:col-span-2">
-                        <span class="text-sm font-medium">Catatan</span>
-                        <textarea x-model="paymentForm.user_note" rows="3" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"></textarea>
-                    </label>
                     <div x-show="plans.length === 0 || bankAccounts.length === 0"
-                        class="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 sm:col-span-2">
+                        class="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
                         Paket aktif atau rekening tujuan belum tersedia.
                     </div>
-                    <div class="mt-2 flex flex-col-reverse gap-2 sm:col-span-2 sm:flex-row sm:justify-end">
+                    <div class="flex flex-col-reverse gap-2 border-t border-zinc-200 pt-4 sm:flex-row sm:justify-end">
                         <button type="button" @click="closeFormModal" class="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50">Batal</button>
                         <button :disabled="actionLoading === 'createPayment' || plans.length === 0 || bankAccounts.length === 0"
                             class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800 disabled:cursor-not-allowed disabled:opacity-60">
@@ -523,6 +533,88 @@
                 </form>
             </div>
         </div>
+
+        <div x-show="paymentDetailOpen" x-transition.opacity @keydown.escape.window="closePaymentDetail"
+            class="fixed inset-0 z-50 grid place-items-stretch bg-black/40 p-0 sm:place-items-center sm:p-4" style="display: none;">
+            <div role="dialog" aria-modal="true"
+                class="h-full max-h-none w-full overflow-y-auto rounded-none bg-white p-5 shadow-lg sm:h-auto sm:max-h-[92vh] sm:max-w-2xl sm:rounded-lg">
+                <div class="mb-4 flex items-center justify-between gap-3">
+                    <h3 class="text-lg font-semibold">Detail Transaksi</h3>
+                    <button type="button" @click="closePaymentDetail" class="grid h-9 w-9 place-items-center rounded-md border border-zinc-300 hover:bg-zinc-50" aria-label="Tutup detail">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                    </button>
+                </div>
+
+                <template x-if="selectedPayment">
+                    <div class="space-y-4">
+                        <div class="rounded-md border border-zinc-200 bg-zinc-50 p-4">
+                            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                <div class="min-w-0">
+                                    <p class="text-sm text-zinc-500">Kode transaksi</p>
+                                    <p class="mt-1 break-all text-lg font-semibold" x-text="selectedPayment.payment_code"></p>
+                                </div>
+                                <span :class="badgeClass(selectedPayment.status)" class="w-fit rounded-full px-2 py-1 text-xs font-medium" x-text="label(selectedPayment.status)"></span>
+                            </div>
+                        </div>
+
+                        <div class="grid gap-3 text-sm sm:grid-cols-2">
+                            <div>
+                                <p class="text-xs uppercase text-zinc-500">Paket</p>
+                                <p class="font-medium" x-text="selectedPayment.plan_name || '-'"></p>
+                                <p class="text-xs text-zinc-500" x-text="`${selectedPayment.duration_days || 0} hari`"></p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-zinc-500">Nominal</p>
+                                <p class="font-medium" x-text="money(selectedPayment.amount)"></p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-zinc-500">Rekening tujuan</p>
+                                <div class="mt-1 flex items-center gap-2">
+                                    <p class="min-w-0 flex-1 font-medium" x-text="selectedPayment.bank_name ? `${selectedPayment.bank_name} ${selectedPayment.account_number || ''}` : '-'"></p>
+                                    <button x-show="selectedPayment.account_number" type="button" @click="copyPaymentBankNumber"
+                                        class="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-zinc-300 bg-white hover:bg-zinc-50"
+                                        title="Salin nomor rekening">
+                                        <i data-lucide="copy" class="h-4 w-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-zinc-500">Atas nama</p>
+                                <p class="font-medium" x-text="selectedPayment.account_holder_name || '-'"></p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-zinc-500">Dibuat</p>
+                                <p class="font-medium" x-text="date(selectedPayment.created_at)"></p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-zinc-500">Dikirim</p>
+                                <p class="font-medium" x-text="date(selectedPayment.submitted_at)"></p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-zinc-500">Diverifikasi</p>
+                                <p class="font-medium" x-text="date(selectedPayment.verified_at)"></p>
+                            </div>
+                        </div>
+
+                        <div class="grid gap-3 text-sm">
+                            <div x-show="selectedPayment.admin_note">
+                                <p class="text-xs uppercase text-zinc-500">Catatan admin</p>
+                                <p class="mt-1 whitespace-pre-line rounded-md border border-zinc-200 bg-zinc-50 p-3" x-text="selectedPayment.admin_note"></p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col-reverse gap-2 border-t border-zinc-200 pt-4 sm:flex-row sm:justify-end">
+                            <button type="button" @click="closePaymentDetail" class="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50">Tutup</button>
+                            <a x-show="selectedPayment.has_proof_file" :href="proofLink(selectedPayment.id)" target="_blank" rel="noopener"
+                                class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
+                                <i data-lucide="file-search" class="h-4 w-4"></i>
+                                Lihat Bukti
+                            </a>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
     </main>
 
     <script>
@@ -553,10 +645,12 @@
                     { key: 'guest', label: 'Guest', icon: 'link' },
                 ],
                 profileForm: {},
-                paymentForm: { subscription_plan_id: '', bank_account_id: '', proof_file: null, user_note: '' },
+                paymentForm: { subscription_plan_id: '', bank_account_id: '', proof_file: null },
                 proofFileName: '',
                 guestForm: { is_active: false },
                 formModal: { open: false, type: '' },
+                paymentDetailOpen: false,
+                selectedPayment: null,
 
                 async init() {
                     await this.checkSession();
@@ -633,7 +727,6 @@
                         subscription_plan_id: planId || '',
                         bank_account_id: '',
                         proof_file: null,
-                        user_note: '',
                     };
                     this.proofFileName = '';
                     this.$nextTick(() => {
@@ -651,6 +744,15 @@
                     this.guestForm.is_active = Number(this.guestPage?.is_active) === 1;
                     this.formModal = { open: true, type: 'guest' };
                     this.refreshIcons();
+                },
+                openPaymentDetail(payment) {
+                    this.selectedPayment = payment;
+                    this.paymentDetailOpen = true;
+                    this.refreshIcons();
+                },
+                closePaymentDetail() {
+                    this.paymentDetailOpen = false;
+                    this.selectedPayment = null;
                 },
                 async api(action, options = {}) {
                     const response = await fetch(this.apiBase + action, {
@@ -733,7 +835,6 @@
                         const formData = new FormData();
                         formData.append('subscription_plan_id', this.paymentForm.subscription_plan_id);
                         formData.append('bank_account_id', this.paymentForm.bank_account_id);
-                        formData.append('user_note', this.paymentForm.user_note || '');
                         formData.append('proof_file', this.paymentForm.proof_file);
                         const data = await this.api('user-payment-create', { method: 'POST', body: formData });
                         this.setMessage(data.message, noticeTab);
@@ -774,6 +875,11 @@
                     await navigator.clipboard.writeText(bank.account_number);
                     this.setMessage('Nomor rekening disalin.', this.tab);
                 },
+                async copyPaymentBankNumber() {
+                    if (!this.selectedPayment?.account_number) return;
+                    await navigator.clipboard.writeText(this.selectedPayment.account_number);
+                    this.setMessage('Nomor rekening disalin.', this.tab);
+                },
                 selectedPlan() {
                     return this.plans.find(plan => Number(plan.id) === Number(this.paymentForm.subscription_plan_id)) || null;
                 },
@@ -784,6 +890,9 @@
                     const file = event.target.files[0] || null;
                     this.paymentForm.proof_file = file;
                     this.proofFileName = file ? file.name : '';
+                },
+                proofLink(paymentId) {
+                    return this.apiBase + 'payment-proof&id=' + encodeURIComponent(paymentId);
                 },
                 money(value) {
                     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0));
