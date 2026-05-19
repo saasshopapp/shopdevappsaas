@@ -35,6 +35,12 @@
         * {
             -webkit-tap-highlight-color: transparent;
         }
+
+        /* Menghilangkan outline fokus bawaan browser pada input */
+        input:focus {
+            outline: none !important;
+            box-shadow: none !important;
+        }
     </style>
 </head>
 
@@ -65,11 +71,15 @@
                     </div>
                 </div>
 
-                <div class="flex items-center border-b border-gray-300 py-3 mb-5">
+                <div class="flex items-center border-b py-3 mb-5 transition-colors duration-200"
+                    :class="isInputFocused ? 'border-shopee-main' : 'border-gray-300'">
                     <i class="fa-solid fa-mobile-screen text-gray-500 text-xl mr-3"></i>
                     <span class="text-gray-800 text-lg mr-2 font-medium">+62</span>
-                    <input x-model="phone" @input="phone = sanitizePhone(phone)" type="tel" inputmode="tel"
-                        maxlength="32" class="flex-1 text-lg outline-none text-gray-800 bg-transparent" 
+                    <input x-model="phone" @input="phone = sanitizePhone(phone)" 
+                        @focus="isInputFocused = true" 
+                        @blur="isInputFocused = false"
+                        type="tel" inputmode="tel" maxlength="32" 
+                        class="flex-1 text-lg outline-none text-gray-800 bg-transparent border-0 p-0" 
                         placeholder="Nomor Telepon">
                 </div>
 
@@ -165,22 +175,22 @@
                 </div>
 
                 <div>
-                    <button type="button" @click="pin = ''" class="text-blue-600 font-medium text-sm">Bersihkan</button>
+                    <button type="button" @click="pemicuGetar(); pin = ''" class="text-blue-600 font-medium text-sm">Bersihkan</button>
                 </div>
             </div>
 
             <div class="bg-gray-100 w-full border-t border-gray-200 grid grid-cols-3 text-2xl font-medium text-black">
                 <template x-for="number in keypad" :key="number">
-                    <button type="button" @click="addPin(number)"
+                    <button type="button" @click="pemicuGetar(); addPin(number)"
                         class="bg-white py-4 border-r border-b border-gray-200 active:bg-gray-100" x-text="number"></button>
                 </template>
 
                 <div class="bg-gray-200 py-4 border-r border-gray-300"></div>
 
-                <button type="button" @click="addPin('0')"
+                <button type="button" @click="pemicuGetar(); addPin('0')"
                     class="bg-white py-4 border-r border-gray-300 active:bg-gray-100">0</button>
 
-                <button type="button" @click="removePin"
+                <button type="button" @click="pemicuGetar(); removePin()"
                     class="bg-gray-200 py-4 flex justify-center items-center active:bg-gray-300" aria-label="Hapus digit">
                     <i class="fa-solid fa-delete-left text-xl text-black"></i>
                 </button>
@@ -204,6 +214,8 @@
                 showPinModal: false,
                 isProcessing: false,
                 keypad: ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
+                // State pembantu untuk melacak status aktif komponen input nomor telepon
+                isInputFocused: false,
 
                 init() {
                     const params = new URLSearchParams(window.location.search);
@@ -214,6 +226,12 @@
                     }
 
                     this.refreshIcons();
+                },
+                // Fungsi pemicu getaran perangkat (Haptic Feedback) durasi 35 milidetik
+                pemicuGetar() {
+                    if (navigator.vibrate) {
+                        navigator.vibrate(35);
+                    }
                 },
                 refreshIcons() {
                     this.$nextTick(() => window.lucide?.createIcons());
