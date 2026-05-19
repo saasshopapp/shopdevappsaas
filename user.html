@@ -19,40 +19,6 @@
 
 <body class="min-h-screen bg-zinc-100 text-zinc-900">
     <main x-data="userDashboard()" x-init="init()" x-cloak class="min-h-screen">
-        <section x-show="!currentUser" class="min-h-screen px-4 py-10 grid place-items-center">
-            <div class="w-full max-w-sm rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
-                <div class="mb-6">
-                    <p class="text-sm font-medium text-cyan-700">My SaaS</p>
-                    <h1 class="mt-1 text-2xl font-semibold">Login User</h1>
-                </div>
-
-                <form @submit.prevent="login" class="space-y-4">
-                    <label class="block">
-                        <span class="text-sm font-medium">Username atau email</span>
-                        <input x-model="loginForm.login" type="text"
-                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-cyan-700 focus:ring-2 focus:ring-cyan-100"
-                            autocomplete="username" required>
-                    </label>
-
-                    <label class="block">
-                        <span class="text-sm font-medium">Password</span>
-                        <input x-model="loginForm.password" type="password"
-                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-cyan-700 focus:ring-2 focus:ring-cyan-100"
-                            autocomplete="current-password" required>
-                    </label>
-
-                    <button type="submit" :disabled="loading"
-                        class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-cyan-800 disabled:cursor-not-allowed disabled:opacity-60">
-                        <i data-lucide="log-in" class="h-4 w-4"></i>
-                        <span x-text="loading ? 'Memproses...' : 'Masuk'"></span>
-                    </button>
-                </form>
-
-                <div x-show="error" class="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
-                    x-text="error"></div>
-            </div>
-        </section>
-
         <section x-show="currentUser" class="min-h-screen lg:block">
             <header class="sticky top-0 z-40 flex items-center justify-between border-b border-zinc-200 bg-white px-4 py-3 lg:hidden">
                 <button type="button" @click="sidebarOpen = true"
@@ -642,7 +608,6 @@
                     { key: 'telegram', label: 'Telegram', icon: 'send' },
                     { key: 'guest', label: 'Guest', icon: 'link' },
                 ],
-                loginForm: { login: '', password: '', role: 'user' },
                 profileForm: {},
                 paymentForm: { subscription_plan_id: '', bank_account_id: '' },
                 submitForm: { id: '', proof_file: null, user_note: '' },
@@ -749,28 +714,17 @@
                         if (data.user?.role === 'user') {
                             this.currentUser = data.user;
                             await this.loadDashboard();
+                            return;
                         }
+                        window.location.href = '/shopdevappsaas';
                     } catch (_) {
                         this.currentUser = null;
-                    }
-                },
-                async login() {
-                    this.loading = true;
-                    this.error = '';
-                    try {
-                        const data = await this.post('login', this.loginForm);
-                        this.currentUser = data.user;
-                        await this.loadDashboard();
-                    } catch (error) {
-                        this.error = error.message;
-                    } finally {
-                        this.loading = false;
-                        this.refreshIcons();
+                        window.location.href = '/shopdevappsaas';
                     }
                 },
                 async logout() {
                     await this.post('logout', {});
-                    window.location.href = '/';
+                    window.location.href = '/shopdevappsaas';
                 },
                 async loadDashboard() {
                     this.setError('');
