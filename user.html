@@ -152,17 +152,17 @@
                 </section>
 
                 <section x-show="tab === 'settings'" class="space-y-4">
-                    <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-                        <div class="rounded-lg border border-zinc-200 bg-white">
-                            <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                                <h3 class="font-semibold">Profil</h3>
-                                <button type="button" @click="openProfileForm"
-                                    class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
-                                    <i data-lucide="pencil" class="h-4 w-4"></i>
-                                    Edit Profil
-                                </button>
-                            </div>
-                            <div class="grid gap-3 p-4 text-sm sm:grid-cols-2">
+                    <div class="rounded-lg border border-zinc-200 bg-white">
+                        <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                            <h3 class="font-semibold">Profil Akun</h3>
+                            <button type="button" @click="openProfileForm"
+                                class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
+                                <i data-lucide="pencil" class="h-4 w-4"></i>
+                                Edit Profil
+                            </button>
+                        </div>
+                        <div class="grid gap-4 p-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+                            <div class="grid gap-3 text-sm sm:grid-cols-2">
                                 <div>
                                     <p class="text-xs uppercase text-zinc-500">Nama</p>
                                     <p class="font-medium" x-text="profile?.name || '-'"></p>
@@ -180,13 +180,7 @@
                                     <p class="font-medium" x-text="profile?.whatsapp_number || '-'"></p>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="rounded-lg border border-zinc-200 bg-white">
-                            <div class="border-b border-zinc-200 px-4 py-3">
-                                <h3 class="font-semibold">Status Akun</h3>
-                            </div>
-                            <div class="grid gap-3 p-4 text-sm">
+                            <div class="grid content-start gap-3 border-t border-zinc-100 pt-4 text-sm xl:border-l xl:border-t-0 xl:pl-4 xl:pt-0">
                                 <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
                                     <span class="text-zinc-500">Akun</span>
                                     <span :class="badgeClass(profile?.account_status)" class="rounded-full px-2 py-1 text-xs font-medium" x-text="label(profile?.account_status)"></span>
@@ -197,53 +191,60 @@
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <span class="text-zinc-500">Berlaku sampai</span>
-                                    <span x-text="date(subscription.active_until)"></span>
+                                    <span class="text-right" x-text="date(subscription.active_until)"></span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="grid gap-4 xl:grid-cols-2">
-                        <div class="rounded-lg border border-zinc-200 bg-white">
-                            <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                                <h3 class="font-semibold">Telegram</h3>
-                                <button type="button" @click="openTelegramForm"
-                                    class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
-                                    <i data-lucide="pencil" class="h-4 w-4"></i>
-                                    Edit Chat ID
-                                </button>
-                            </div>
-                            <div class="grid gap-3 p-4 text-sm sm:grid-cols-2">
-                                <div>
-                                    <p class="text-xs uppercase text-zinc-500">Status</p>
-                                    <span :class="profile?.telegram_chat_id ? badgeClass('aktif') : badgeClass('belum_aktif')" class="mt-1 inline-flex rounded-full px-2 py-1 text-xs font-medium"
-                                        x-text="profile?.telegram_chat_id ? 'Sudah diatur' : 'Belum diatur'"></span>
-                                </div>
-                                <div>
-                                    <p class="text-xs uppercase text-zinc-500">Chat ID</p>
-                                    <p class="font-medium" x-text="profile?.telegram_chat_id || '-'"></p>
-                                </div>
-                            </div>
+                    <div class="rounded-lg border border-zinc-200 bg-white">
+                        <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                            <h3 class="font-semibold">Telegram &amp; Halaman Guest</h3>
+                            <button type="button" @click="openTelegramForm"
+                                class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
+                                <i data-lucide="pencil" class="h-4 w-4"></i>
+                                Edit Chat ID
+                            </button>
                         </div>
-
-                        <div class="rounded-lg border border-zinc-200 bg-white">
-                            <div class="border-b border-zinc-200 px-4 py-3">
-                                <h3 class="font-semibold">Halaman Guest</h3>
+                        <div class="grid gap-4 p-4 xl:grid-cols-2">
+                            <div class="grid content-start gap-4 text-sm xl:border-r xl:border-zinc-100 xl:pr-4">
+                                <div class="grid gap-3 sm:grid-cols-2">
+                                    <div>
+                                        <p class="text-xs uppercase text-zinc-500">Status Telegram</p>
+                                        <span :class="profile?.telegram_chat_id ? badgeClass('aktif') : badgeClass('belum_aktif')" class="mt-1 inline-flex rounded-full px-2 py-1 text-xs font-medium"
+                                            x-text="profile?.telegram_chat_id ? 'Sudah diatur' : 'Belum diatur'"></span>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs uppercase text-zinc-500">Chat ID</p>
+                                        <p class="font-medium" x-text="profile?.telegram_chat_id || '-'"></p>
+                                    </div>
+                                </div>
+                                <div class="border-t border-zinc-100 pt-3">
+                                    <p class="text-xs font-medium uppercase text-zinc-500">Panduan Chat ID</p>
+                                    <ol class="mt-2 list-decimal space-y-1 pl-4 text-zinc-600">
+                                        <li>Buka Telegram dan cari <span class="font-medium text-zinc-900">@danicodex_bot</span>.</li>
+                                        <li>Kirim pesan <span class="font-medium text-zinc-900">/start</span>.</li>
+                                        <li>Salin Chat ID dari balasan bot, lalu isi lewat tombol Edit Chat ID.</li>
+                                    </ol>
+                                </div>
                             </div>
-                            <div class="grid gap-3 p-4 text-sm sm:grid-cols-2">
-                                <div>
-                                    <p class="text-xs uppercase text-zinc-500">Status</p>
-                                    <span :class="badgeClass(Number(guestPage?.is_active) === 1 ? 'aktif' : 'tidak_aktif')" class="mt-1 inline-flex rounded-full px-2 py-1 text-xs font-medium"
-                                        x-text="Number(guestPage?.is_active) === 1 ? 'Aktif' : 'Tidak aktif'"></span>
+
+                            <div class="grid content-start gap-3 border-t border-zinc-100 pt-4 text-sm xl:border-t-0 xl:pt-0">
+                                <div class="grid gap-3 sm:grid-cols-2">
+                                    <div>
+                                        <p class="text-xs uppercase text-zinc-500">Status Guest</p>
+                                        <span :class="badgeClass(Number(guestPage?.is_active) === 1 ? 'aktif' : 'tidak_aktif')" class="mt-1 inline-flex rounded-full px-2 py-1 text-xs font-medium"
+                                            x-text="Number(guestPage?.is_active) === 1 ? 'Aktif' : 'Tidak aktif'"></span>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs uppercase text-zinc-500">Identifier</p>
+                                        <p class="font-medium" x-text="guestPage?.identifier || '-'"></p>
+                                    </div>
                                 </div>
                                 <div>
-                                    <p class="text-xs uppercase text-zinc-500">Identifier</p>
-                                    <p class="font-medium" x-text="guestPage?.identifier || '-'"></p>
-                                </div>
-                                <div class="sm:col-span-2">
                                     <p class="text-xs uppercase text-zinc-500">Link</p>
                                     <div class="mt-1 flex gap-2">
-                                        <input :value="guestPage?.link || '-'" readonly class="min-w-0 flex-1 rounded-md border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm">
+                                        <p class="min-w-0 flex-1 truncate rounded-md bg-zinc-50 px-3 py-2" x-text="guestPage?.link || '-'"></p>
                                         <button type="button" @click="copyGuestLink" class="grid h-10 w-10 shrink-0 place-items-center rounded-md border border-zinc-300 hover:bg-zinc-50" title="Salin link" aria-label="Salin link">
                                             <i data-lucide="copy" class="h-4 w-4"></i>
                                         </button>
@@ -372,14 +373,14 @@
                         <span class="text-sm font-medium">Nama</span>
                         <input x-model="profileForm.name" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
                     </label>
-                    <label class="block">
-                        <span class="text-sm font-medium">Username</span>
-                        <input :value="profile?.username" readonly class="mt-1 w-full rounded-md border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm">
-                    </label>
-                    <label class="block">
-                        <span class="text-sm font-medium">Email</span>
-                        <input :value="profile?.email || '-'" readonly class="mt-1 w-full rounded-md border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm">
-                    </label>
+                    <div>
+                        <p class="text-sm font-medium">Username</p>
+                        <p class="mt-1 min-h-10 rounded-md bg-zinc-50 px-3 py-2 text-sm text-zinc-700" x-text="profile?.username || '-'"></p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium">Email</p>
+                        <p class="mt-1 min-h-10 rounded-md bg-zinc-50 px-3 py-2 text-sm text-zinc-700" x-text="profile?.email || '-'"></p>
+                    </div>
                     <label class="block">
                         <span class="text-sm font-medium">WhatsApp</span>
                         <input x-model="profileForm.whatsapp_number" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm">
