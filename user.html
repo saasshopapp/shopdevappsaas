@@ -533,7 +533,7 @@
             </div>
         </div>
 
-        <div x-show="paymentDetailOpen" x-transition.opacity @keydown.escape.window="closePaymentDetail"
+        <div x-show="paymentDetailOpen" x-transition.opacity @keydown.escape.window="if (!proofPreviewOpen) closePaymentDetail()"
             class="fixed inset-0 z-50 grid place-items-stretch bg-black/40 p-0 sm:place-items-center sm:p-4" style="display: none;">
             <div role="dialog" aria-modal="true"
                 class="h-full max-h-none w-full overflow-y-auto rounded-none bg-white p-5 shadow-lg sm:h-auto sm:max-h-[92vh] sm:max-w-2xl sm:rounded-lg">
@@ -606,22 +606,30 @@
                             <button x-show="selectedPayment.has_proof_file" type="button" @click="toggleProofPreview"
                                 class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
                                 <i data-lucide="file-search" class="h-4 w-4"></i>
-                                <span x-text="proofPreviewOpen ? 'Tutup Bukti' : 'Bukti Transfer'"></span>
+                                Bukti Transfer
                             </button>
-                        </div>
-
-                        <div x-show="proofPreviewOpen && selectedPayment.has_proof_file" x-transition.opacity class="rounded-md border border-zinc-200 bg-zinc-50 p-3">
-                            <div class="mb-3 flex items-center justify-between gap-3">
-                                <h4 class="font-semibold">Bukti Transfer</h4>
-                                <button type="button" @click="proofPreviewOpen = false" class="grid h-8 w-8 place-items-center rounded-md border border-zinc-300 bg-white hover:bg-zinc-50" aria-label="Tutup bukti">
-                                    <i data-lucide="x" class="h-4 w-4"></i>
-                                </button>
-                            </div>
-                            <iframe :src="proofLink(selectedPayment.id)" title="Bukti transfer"
-                                class="h-[70vh] w-full rounded-md border border-zinc-200 bg-white"></iframe>
                         </div>
                     </div>
                 </template>
+            </div>
+        </div>
+
+        <div x-show="proofPreviewOpen && selectedPayment?.has_proof_file" x-transition.opacity
+            @click.self="closeProofPreview" @keydown.escape.window="closeProofPreview"
+            class="fixed inset-0 z-[60] grid place-items-stretch bg-black/45 p-0 backdrop-blur-sm sm:place-items-center sm:p-4" style="display: none;">
+            <div role="dialog" aria-modal="true"
+                class="flex h-full max-h-none w-full flex-col overflow-hidden rounded-none bg-white shadow-lg sm:h-[92vh] sm:max-w-4xl sm:rounded-lg">
+                <div class="flex items-center justify-between gap-3 border-b border-zinc-200 px-4 py-3">
+                    <div class="min-w-0">
+                        <h3 class="font-semibold">Bukti Transfer</h3>
+                        <p class="truncate text-sm text-zinc-500" x-text="selectedPayment?.payment_code || ''"></p>
+                    </div>
+                    <button type="button" @click="closeProofPreview" class="grid h-9 w-9 place-items-center rounded-md border border-zinc-300 hover:bg-zinc-50" aria-label="Tutup bukti">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                    </button>
+                </div>
+                <iframe :src="selectedPayment ? proofLink(selectedPayment.id) : ''" title="Bukti transfer"
+                    class="min-h-0 flex-1 w-full border-0 bg-white"></iframe>
             </div>
         </div>
     </main>
@@ -767,8 +775,11 @@
                     this.proofPreviewOpen = false;
                 },
                 toggleProofPreview() {
-                    this.proofPreviewOpen = !this.proofPreviewOpen;
+                    this.proofPreviewOpen = true;
                     this.refreshIcons();
+                },
+                closeProofPreview() {
+                    this.proofPreviewOpen = false;
                 },
                 async api(action, options = {}) {
                     const response = await fetch(this.apiBase + action, {
