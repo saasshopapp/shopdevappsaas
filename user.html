@@ -965,12 +965,12 @@
                         throw new Error('Library export PDF belum siap. Muat ulang halaman lalu coba lagi.');
                     }
                 },
-                dadTemplateUrl() {
+                pdfTemplateUrl() {
                     const url = new URL('templeate.html', window.location.href);
                     url.searchParams.set('guest_link', this.guestPage.link);
                     return url.toString();
                 },
-                loadDadTemplateFrame() {
+                loadPdfTemplateFrame() {
                     return new Promise((resolve, reject) => {
                         const frame = document.createElement('iframe');
                         frame.style.position = 'fixed';
@@ -998,7 +998,7 @@
                             }
                         }, { once: true });
 
-                        frame.src = this.dadTemplateUrl();
+                        frame.src = this.pdfTemplateUrl();
                         document.body.appendChild(frame);
                     });
                 },
@@ -1034,7 +1034,7 @@
 
                     try {
                         this.ensurePdfLibraries();
-                        frame = await this.loadDadTemplateFrame();
+                        frame = await this.loadPdfTemplateFrame();
 
                         const doc = frame.contentDocument;
                         const container = doc?.querySelector('.simulation-container');
