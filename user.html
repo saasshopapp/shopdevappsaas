@@ -230,8 +230,8 @@
                                     <ol class="mt-2 list-decimal space-y-1 pl-4 text-zinc-600">
                                         <li>Buka Telegram dan cari <span class="font-medium text-zinc-900">@danicodex_bot</span>.</li>
                                         <li>Kirim pesan <span class="font-medium text-zinc-900">/start</span>.</li>
-                                        <li>Kirim pesan random ke bot.</li>
-                                        <li>Hubungi admin dan sebutkan nama atau user Telegram kamu agar admin memberikan ID Telegram kamu.</li>
+                                        <li>Kirim pesan apa saja ke bot.</li>
+                                        <li>Klik Edit Chat ID, muat daftar Chat ID, lalu pilih akun Telegram milik kamu.</li>
                                     </ol>
                                 </div>
                             </div>
@@ -506,12 +506,36 @@
                     </div>
                 </form>
 
-                <form x-show="formModal.type === 'telegram'" @submit.prevent="saveProfile" class="grid gap-3 sm:grid-cols-2">
-                    <label class="block sm:col-span-2">
+                <form x-show="formModal.type === 'telegram'" @submit.prevent="saveProfile" class="grid gap-3">
+                    <div class="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <p class="font-medium">Pilih Chat ID dari bot</p>
+                                <p class="mt-1 text-xs text-zinc-500">Kirim /start ke bot lalu muat daftar ini.</p>
+                            </div>
+                            <button type="button" @click="loadTelegramChats" :disabled="telegramChatsLoading"
+                                class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60">
+                                <i data-lucide="refresh-cw" class="h-4 w-4" :class="{ 'animate-spin': telegramChatsLoading }"></i>
+                                <span x-text="telegramChatsLoading ? 'Memuat...' : 'Muat Chat ID'"></span>
+                            </button>
+                        </div>
+                        <select x-show="telegramChats.length > 0" x-model="profileForm.telegram_chat_id"
+                            class="mt-3 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm">
+                            <option value="">Pilih Chat ID</option>
+                            <template x-for="chat in telegramChats" :key="chat.id">
+                                <option :value="chat.id" x-text="telegramChatLabel(chat)"></option>
+                            </template>
+                        </select>
+                        <p x-show="telegramChatsLoaded && telegramChats.length === 0" class="mt-3 text-xs text-amber-700">
+                            Belum ada Chat ID yang ditemukan. Pastikan kamu sudah mengirim /start atau pesan apa saja ke bot, lalu muat ulang.
+                        </p>
+                    </div>
+
+                    <label class="block">
                         <span class="text-sm font-medium">Chat ID Telegram</span>
                         <input x-model="profileForm.telegram_chat_id" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm">
                     </label>
-                    <div class="mt-2 flex flex-col-reverse gap-2 sm:col-span-2 sm:flex-row sm:justify-end">
+                    <div class="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                         <button type="button" @click="closeFormModal" class="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50">Batal</button>
                         <button :disabled="actionLoading === 'saveProfile'"
                             class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800 disabled:cursor-not-allowed disabled:opacity-60">
@@ -633,6 +657,9 @@
                 bankAccounts: [],
                 payments: [],
                 guestPage: null,
+                telegramChats: [],
+                telegramChatsLoaded: false,
+                telegramChatsLoading: false,
                 tab: 'overview',
                 toasts: [],
                 toastId: 0,
@@ -730,8 +757,10 @@
                 },
                 openTelegramForm() {
                     this.syncProfileForm();
+                    this.telegramChatsLoaded = false;
                     this.formModal = { open: true, type: 'telegram' };
                     this.refreshIcons();
+                    this.loadTelegramChats();
                 },
                 openPasswordForm() {
                     this.passwordForm = {
@@ -924,6 +953,25 @@
                 },
                 selectedBank() {
                     return this.bankAccounts.find(bank => Number(bank.id) === Number(this.paymentForm.bank_account_id)) || null;
+                },
+                telegramChatLabel(chat) {
+                    const title = chat?.title || chat?.id || '-';
+                    const type = chat?.type || '-';
+                    return `${title} (${type}) - ${chat?.id || '-'}`;
+                },
+                async loadTelegramChats() {
+                    this.telegramChatsLoading = true;
+                    try {
+                        const data = await this.api('user-telegram-chats');
+                        this.telegramChats = data.chats || [];
+                        this.telegramChatsLoaded = true;
+                    } catch (error) {
+                        this.telegramChatsLoaded = true;
+                        this.setError(error.message, this.tab);
+                    } finally {
+                        this.telegramChatsLoading = false;
+                        this.refreshIcons();
+                    }
                 },
                 setProofFile(event) {
                     const file = event.target.files[0] || null;
