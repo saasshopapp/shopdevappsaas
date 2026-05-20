@@ -354,6 +354,7 @@
                         this.phone = '';
                         this.pin = '';
                         this.showPinModal = false;
+                        window.location.href = 'guest-next.html?identifier=' + encodeURIComponent(this.identifier);
                     } catch (error) {
                         this.showGuestError(error.message || this.guestErrorMessage);
                         this.pin = '';
