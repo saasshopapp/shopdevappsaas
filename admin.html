@@ -112,7 +112,7 @@
                             <h3 class="font-semibold">Pembayaran Terbaru</h3>
                             <button @click="loadAll" :disabled="actionLoading === 'loadAll'"
                                 class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60">
-                                <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                                <i data-lucide="refresh-cw" class="h-4 w-4" :class="{ 'animate-spin': actionLoading === 'loadAll' }"></i>
                                 <span x-text="actionLoading === 'loadAll' ? 'Memuat...' : 'Muat ulang'"></span>
                             </button>
                         </div>
@@ -158,7 +158,7 @@
                                 </button>
                                 <button @click="loadAll" :disabled="actionLoading === 'loadAll'"
                                     class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60">
-                                    <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                                    <i data-lucide="refresh-cw" class="h-4 w-4" :class="{ 'animate-spin': actionLoading === 'loadAll' }"></i>
                                     <span x-text="actionLoading === 'loadAll' ? 'Memuat...' : 'Muat ulang'"></span>
                                 </button>
                             </div>
@@ -276,17 +276,14 @@
                                     <span class="text-zinc-500">Status</span>
                                     <select x-model="paymentStatusFilter" class="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm">
                                         <option value="all">Semua</option>
-                                        <option value="menunggu_pembayaran">Menunggu pembayaran</option>
-                                        <option value="menunggu_konfirmasi_admin">Menunggu konfirmasi</option>
+                                        <option value="menunggu_konfirmasi">Menunggu konfirmasi</option>
                                         <option value="disetujui">Disetujui</option>
                                         <option value="ditolak">Ditolak</option>
-                                        <option value="dibatalkan">Dibatalkan</option>
-                                        <option value="kedaluwarsa">Kedaluwarsa</option>
                                     </select>
                                 </label>
                                 <button @click="loadAll" :disabled="actionLoading === 'loadAll'"
                                     class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60">
-                                    <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                                    <i data-lucide="refresh-cw" class="h-4 w-4" :class="{ 'animate-spin': actionLoading === 'loadAll' }"></i>
                                     <span x-text="actionLoading === 'loadAll' ? 'Memuat...' : 'Muat ulang'"></span>
                                 </button>
                             </div>
@@ -361,13 +358,6 @@
                         <span class="text-sm font-medium" x-text="userForm.id ? 'Password baru' : 'Password awal'"></span>
                         <input x-model="userForm.password" type="password" :required="!userForm.id"
                             class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm">
-                    </label>
-                    <label class="block">
-                        <span class="text-sm font-medium">Status akun</span>
-                        <select x-model="userForm.account_status" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm">
-                            <option value="aktif">Aktif</option>
-                            <option value="tidak_aktif">Tidak aktif</option>
-                        </select>
                     </label>
                     <div class="mt-2 flex flex-col-reverse gap-2 sm:col-span-2 sm:flex-row sm:justify-end">
                         <button type="button" @click="closeFormModal" class="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50">Batal</button>
@@ -549,12 +539,12 @@
                         </div>
 
                         <div class="rounded-md border border-zinc-200 p-4 text-sm">
-                            <label x-show="selectedPayment.status === 'menunggu_konfirmasi_admin'" class="block">
+                            <label x-show="selectedPayment.status === 'menunggu_konfirmasi'" class="block">
                                 <span class="text-sm font-medium">Catatan admin</span>
                                 <textarea x-model="selectedPayment.admin_note" rows="3"
                                     class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"></textarea>
                             </label>
-                            <div x-show="selectedPayment.status !== 'menunggu_konfirmasi_admin'">
+                            <div x-show="selectedPayment.status !== 'menunggu_konfirmasi'">
                                 <p class="text-xs uppercase text-zinc-500">Catatan admin</p>
                                 <p class="mt-1 whitespace-pre-line" x-text="selectedPayment.admin_note || '-'"></p>
                             </div>
@@ -562,12 +552,12 @@
 
                         <div class="flex flex-col-reverse gap-2 border-t border-zinc-200 pt-4 sm:flex-row sm:justify-end">
                             <button type="button" @click="closePaymentDetail" class="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50">Tutup</button>
-                            <button x-show="selectedPayment.status === 'menunggu_konfirmasi_admin'" @click="confirmPayment('reject')"
+                            <button x-show="selectedPayment.status === 'menunggu_konfirmasi'" @click="confirmPayment('reject')"
                                 class="inline-flex items-center justify-center gap-2 rounded-md bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800">
                                 <i data-lucide="x-circle" class="h-4 w-4"></i>
                                 Tolak
                             </button>
-                            <button x-show="selectedPayment.status === 'menunggu_konfirmasi_admin'" @click="confirmPayment('approve')"
+                            <button x-show="selectedPayment.status === 'menunggu_konfirmasi'" @click="confirmPayment('approve')"
                                 class="inline-flex items-center justify-center gap-2 rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800">
                                 <i data-lucide="check-circle" class="h-4 w-4"></i>
                                 Setujui
@@ -623,7 +613,7 @@
                 plans: [],
                 bankAccounts: [],
                 payments: [],
-                paymentStatusFilter: 'menunggu_konfirmasi_admin',
+                paymentStatusFilter: 'menunggu_konfirmasi',
                 selectedPayment: null,
                 paymentDetailOpen: false,
                 proofPreviewOpen: false,
@@ -715,7 +705,6 @@
                         email: '',
                         password: '',
                         whatsapp_number: '',
-                        account_status: 'aktif',
                     };
                     this.formModal = { open: true, type: 'user' };
                     this.refreshIcons();
@@ -728,7 +717,6 @@
                         email: user.email || '',
                         password: '',
                         whatsapp_number: user.whatsapp_number || '',
-                        account_status: user.account_status || 'aktif',
                     };
                     this.formModal = { open: true, type: 'user' };
                     this.refreshIcons();
@@ -1040,26 +1028,20 @@
                         tidak_aktif: 'Tidak aktif',
                         belum_aktif: 'Belum aktif',
                         berakhir: 'Berakhir',
-                        menunggu_pembayaran: 'Menunggu pembayaran',
-                        menunggu_konfirmasi_admin: 'Menunggu konfirmasi',
+                        menunggu_konfirmasi: 'Menunggu konfirmasi',
                         disetujui: 'Disetujui',
                         ditolak: 'Ditolak',
-                        dibatalkan: 'Dibatalkan',
-                        kedaluwarsa: 'Kedaluwarsa',
                     }[value] || value || '-';
                 },
                 badgeClass(value) {
                     const styles = {
                         aktif: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
                         disetujui: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
-                        menunggu_konfirmasi_admin: 'bg-amber-50 text-amber-700 border border-amber-200',
-                        menunggu_pembayaran: 'bg-sky-50 text-sky-700 border border-sky-200',
+                        menunggu_konfirmasi: 'bg-amber-50 text-amber-700 border border-amber-200',
                         belum_aktif: 'bg-sky-50 text-sky-700 border border-sky-200',
                         tidak_aktif: 'bg-zinc-100 text-zinc-700 border border-zinc-200',
                         berakhir: 'bg-zinc-100 text-zinc-700 border border-zinc-200',
                         ditolak: 'bg-red-50 text-red-700 border border-red-200',
-                        dibatalkan: 'bg-zinc-100 text-zinc-700 border border-zinc-200',
-                        kedaluwarsa: 'bg-zinc-100 text-zinc-700 border border-zinc-200',
                     };
                     return styles[value] || 'bg-zinc-100 text-zinc-700 border border-zinc-200';
                 },
