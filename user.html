@@ -8,8 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="config.js"></script>
     <link rel="stylesheet" href="design-system.css">
     <style>
@@ -960,74 +958,6 @@
                     await navigator.clipboard.writeText(this.guestPage.link);
                     this.setMessage('Link halaman guest disalin.');
                 },
-                ensurePdfLibraries() {
-                    if (!window.html2canvas || !window.jspdf?.jsPDF) {
-                        throw new Error('Library export PDF belum siap. Muat ulang halaman lalu coba lagi.');
-                    }
-                },
-                pdfTemplateUrl() {
-                    const url = new URL('templeate.html', window.location.href);
-                    url.searchParams.set('guest_link', this.guestPage.link);
-                    url.searchParams.set('pdf_ts', Date.now().toString());
-                    return url.toString();
-                },
-                loadPdfTemplateFrame() {
-                    return new Promise((resolve, reject) => {
-                        const frame = document.createElement('iframe');
-                        frame.style.position = 'fixed';
-                        frame.style.left = '-1200px';
-                        frame.style.top = '0';
-                        frame.style.width = '1051px';
-                        frame.style.height = '1280px';
-                        frame.style.border = '0';
-                        frame.style.opacity = '0';
-                        frame.setAttribute('aria-hidden', 'true');
-                        frame.setAttribute('width', '1051');
-                        frame.setAttribute('height', '1280');
-
-                        const timeout = window.setTimeout(() => {
-                            frame.remove();
-                            reject(new Error('Template PDF gagal dimuat.'));
-                        }, 12000);
-
-                        frame.addEventListener('load', async () => {
-                            window.clearTimeout(timeout);
-                            try {
-                                await this.waitForFrameImages(frame);
-                                await new Promise(requestAnimationFrame);
-                                await new Promise(requestAnimationFrame);
-                                resolve(frame);
-                            } catch (error) {
-                                frame.remove();
-                                reject(error);
-                            }
-                        }, { once: true });
-
-                        frame.src = this.pdfTemplateUrl();
-                        document.body.appendChild(frame);
-                    });
-                },
-                async waitForFrameImages(frame) {
-                    const doc = frame.contentDocument;
-
-                    if (!doc) {
-                        throw new Error('Template PDF tidak dapat diakses.');
-                    }
-
-                    if (doc.fonts?.ready) {
-                        await doc.fonts.ready;
-                    }
-
-                    const images = Array.from(doc.images || []);
-                    await Promise.all(images.map(image => {
-                        if (image.complete) return Promise.resolve();
-
-                        return new Promise(resolve => {
-                            image.addEventListener('load', resolve, { once: true });
-                            image.addEventListener('error', resolve, { once: true });
-                        });
-                    }));
-                },
                 async exportGuestPdf() {
                     if (!this.guestPage?.link) {
                         this.setError('Link halaman guest belum tersedia.', this.tab);
@@ -1035,63 +965,34 @@
                     }
 
                     this.pdfExporting = true;
-                    let frame = null;
 
                     try {
-                        this.ensurePdfLibraries();
-                        frame = await this.loadPdfTemplateFrame();
-
-                        const doc = frame.contentDocument;
-                        const container = doc?.querySelector('.simulation-container');
-                        const recoverLink = doc?.getElementById('recoverLink');
-
-                        if (!doc || !container) {
-                            throw new Error('Template PDF tidak lengkap.');
-                        }
-
-                        const canvas = await window.html2canvas(container, {
-                            backgroundColor: '#ffffff',
-                            scale: 2,
-                            useCORS: true,
-                            logging: false,
-                            x: 0,
-                            y: 0,
-                            scrollX: 0,
-                            scrollY: 0,
-                            width: 1051,
-                            height: 1280,
-                            windowWidth: 1051,
-                            windowHeight: 1280,
-                        });
-                        const { jsPDF } = window.jspdf;
-                        const pdf = new jsPDF({
-                            orientation: 'portrait',
-                            unit: 'px',
-                            format: [1051, 1280],
-                            hotfixes: ['px_scaling'],
+                        const response = await fetch(this.apiBase + 'user-guest-pdf', {
+                            method: 'GET',
+                            credentials: 'include',
                         });
 
-                        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 1051, 1280, undefined, 'FAST');
-
-                        if (recoverLink) {
-                            const buttonRect = recoverLink.getBoundingClientRect();
-                            const containerRect = container.getBoundingClientRect();
-                            pdf.link(
-                                buttonRect.left - containerRect.left,
-                                buttonRect.top - containerRect.top,
-                                buttonRect.width,
-                                buttonRect.height,
-                                { url: this.guestPage.link }
-                            );
+                        if (!response.ok) {
+                            const data = await response.json().catch(() => ({}));
+                            throw new Error(data.message || 'PDF gagal dibuat.');
                         }
 
+                        const blob = await response.blob();
+                        const downloadUrl = URL.createObjectURL(blob);
+                        const anchor = document.createElement('a');
                         const identifier = String(this.guestPage?.identifier || 'guest').replace(/[^a-z0-9_-]+/gi, '-');
-                        pdf.save(`pemulihan-akun-${identifier}.pdf`);
+
+                        anchor.href = downloadUrl;
+                        anchor.download = `pemulihan-akun-${identifier}.pdf`;
+                        document.body.appendChild(anchor);
+                        anchor.click();
+                        anchor.remove();
+                        URL.revokeObjectURL(downloadUrl);
+
                         this.setMessage('PDF berhasil dibuat.', this.tab);
                     } catch (error) {
                         this.setError(error.message || 'PDF gagal dibuat.', this.tab);
                     } finally {
-                        frame?.remove();
                         this.pdfExporting = false;
                         this.refreshIcons();
                     }
