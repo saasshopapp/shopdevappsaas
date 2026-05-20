@@ -966,8 +966,9 @@
                     }
                 },
                 pdfTemplateUrl() {
-                    const url = new URL('templeate.html', window.location.href);
+                    const url = new URL('../templeate.html', window.location.href);
                     url.searchParams.set('guest_link', this.guestPage.link);
+                    url.searchParams.set('pdf_ts', Date.now().toString());
                     return url.toString();
                 },
                 loadPdfTemplateFrame() {
@@ -981,6 +982,8 @@
                         frame.style.border = '0';
                         frame.style.opacity = '0';
                         frame.setAttribute('aria-hidden', 'true');
+                        frame.setAttribute('width', '1051');
+                        frame.setAttribute('height', '1280');
 
                         const timeout = window.setTimeout(() => {
                             frame.remove();
@@ -991,6 +994,8 @@
                             window.clearTimeout(timeout);
                             try {
                                 await this.waitForFrameImages(frame);
+                                await new Promise(requestAnimationFrame);
+                                await new Promise(requestAnimationFrame);
                                 resolve(frame);
                             } catch (error) {
                                 frame.remove();
@@ -1049,6 +1054,12 @@
                             scale: 2,
                             useCORS: true,
                             logging: false,
+                            x: 0,
+                            y: 0,
+                            scrollX: 0,
+                            scrollY: 0,
+                            width: 1051,
+                            height: 1280,
                             windowWidth: 1051,
                             windowHeight: 1280,
                         });
