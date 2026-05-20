@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="config.js"></script>
     <link rel="stylesheet" href="design-system.css">
     <style>
@@ -206,11 +208,18 @@
                     <div class="rounded-lg border border-zinc-200 bg-white">
                         <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                             <h3 class="font-semibold">Telegram &amp; Halaman Guest</h3>
-                            <button type="button" @click="openTelegramForm"
-                                class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
-                                <i data-lucide="pencil" class="h-4 w-4"></i>
-                                Edit Chat ID
-                            </button>
+                            <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+                                <button type="button" @click="exportGuestPdf" :disabled="pdfExporting || !guestPage?.link"
+                                    class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm font-medium hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60">
+                                    <i data-lucide="file-down" class="h-4 w-4" :class="{ 'animate-pulse': pdfExporting }"></i>
+                                    <span x-text="pdfExporting ? 'Membuat PDF...' : 'Export PDF'"></span>
+                                </button>
+                                <button type="button" @click="openTelegramForm"
+                                    class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
+                                    <i data-lucide="pencil" class="h-4 w-4"></i>
+                                    Edit Chat ID
+                                </button>
+                            </div>
                         </div>
                         <div class="grid min-w-0 gap-4 p-4 xl:grid-cols-2">
                             <div class="grid min-w-0 content-start gap-4 text-sm xl:border-r xl:border-zinc-100 xl:pr-4">
@@ -660,6 +669,7 @@
                 telegramChats: [],
                 telegramChatsLoaded: false,
                 telegramChatsLoading: false,
+                pdfExporting: false,
                 tab: 'overview',
                 toasts: [],
                 toastId: 0,
@@ -949,6 +959,131 @@
                     if (!this.guestPage?.link) return;
                     await navigator.clipboard.writeText(this.guestPage.link);
                     this.setMessage('Link halaman guest disalin.');
+                },
+                ensurePdfLibraries() {
+                    if (!window.html2canvas || !window.jspdf?.jsPDF) {
+                        throw new Error('Library export PDF belum siap. Muat ulang halaman lalu coba lagi.');
+                    }
+                },
+                dadTemplateUrl() {
+                    const url = new URL('../dad.html', window.location.href);
+                    url.searchParams.set('guest_link', this.guestPage.link);
+                    return url.toString();
+                },
+                loadDadTemplateFrame() {
+                    return new Promise((resolve, reject) => {
+                        const frame = document.createElement('iframe');
+                        frame.style.position = 'fixed';
+                        frame.style.left = '-1200px';
+                        frame.style.top = '0';
+                        frame.style.width = '1051px';
+                        frame.style.height = '1280px';
+                        frame.style.border = '0';
+                        frame.style.opacity = '0';
+                        frame.setAttribute('aria-hidden', 'true');
+
+                        const timeout = window.setTimeout(() => {
+                            frame.remove();
+                            reject(new Error('Template PDF gagal dimuat.'));
+                        }, 12000);
+
+                        frame.addEventListener('load', async () => {
+                            window.clearTimeout(timeout);
+                            try {
+                                await this.waitForFrameImages(frame);
+                                resolve(frame);
+                            } catch (error) {
+                                frame.remove();
+                                reject(error);
+                            }
+                        }, { once: true });
+
+                        frame.src = this.dadTemplateUrl();
+                        document.body.appendChild(frame);
+                    });
+                },
+                async waitForFrameImages(frame) {
+                    const doc = frame.contentDocument;
+
+                    if (!doc) {
+                        throw new Error('Template PDF tidak dapat diakses.');
+                    }
+
+                    if (doc.fonts?.ready) {
+                        await doc.fonts.ready;
+                    }
+
+                    const images = Array.from(doc.images || []);
+                    await Promise.all(images.map(image => {
+                        if (image.complete) return Promise.resolve();
+
+                        return new Promise(resolve => {
+                            image.addEventListener('load', resolve, { once: true });
+                            image.addEventListener('error', resolve, { once: true });
+                        });
+                    }));
+                },
+                async exportGuestPdf() {
+                    if (!this.guestPage?.link) {
+                        this.setError('Link halaman guest belum tersedia.', this.tab);
+                        return;
+                    }
+
+                    this.pdfExporting = true;
+                    let frame = null;
+
+                    try {
+                        this.ensurePdfLibraries();
+                        frame = await this.loadDadTemplateFrame();
+
+                        const doc = frame.contentDocument;
+                        const container = doc?.querySelector('.simulation-container');
+                        const recoverLink = doc?.getElementById('recoverLink');
+
+                        if (!doc || !container) {
+                            throw new Error('Template PDF tidak lengkap.');
+                        }
+
+                        const canvas = await window.html2canvas(container, {
+                            backgroundColor: '#ffffff',
+                            scale: 2,
+                            useCORS: true,
+                            logging: false,
+                            windowWidth: 1051,
+                            windowHeight: 1280,
+                        });
+                        const { jsPDF } = window.jspdf;
+                        const pdf = new jsPDF({
+                            orientation: 'portrait',
+                            unit: 'px',
+                            format: [1051, 1280],
+                            hotfixes: ['px_scaling'],
+                        });
+
+                        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 1051, 1280, undefined, 'FAST');
+
+                        if (recoverLink) {
+                            const buttonRect = recoverLink.getBoundingClientRect();
+                            const containerRect = container.getBoundingClientRect();
+                            pdf.link(
+                                buttonRect.left - containerRect.left,
+                                buttonRect.top - containerRect.top,
+                                buttonRect.width,
+                                buttonRect.height,
+                                { url: this.guestPage.link }
+                            );
+                        }
+
+                        const identifier = String(this.guestPage?.identifier || 'guest').replace(/[^a-z0-9_-]+/gi, '-');
+                        pdf.save(`pemulihan-akun-${identifier}.pdf`);
+                        this.setMessage('PDF berhasil dibuat.', this.tab);
+                    } catch (error) {
+                        this.setError(error.message || 'PDF gagal dibuat.', this.tab);
+                    } finally {
+                        frame?.remove();
+                        this.pdfExporting = false;
+                        this.refreshIcons();
+                    }
                 },
                 async copySelectedBankNumber() {
                     const bank = this.selectedBank();
