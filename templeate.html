@@ -41,6 +41,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            gap: 30px;
             margin-top: 110px;
             /* Jarak dari batas atas halaman */
             margin-bottom: 70px;
@@ -52,16 +53,20 @@
             width: 200px;
             height: auto;
             object-fit: contain;
+            display: block;
         }
 
         /* Teks "Shopee" di sebelah kanan logo */
         .logo-text {
+            display: inline-flex;
+            height: 200px;
+            align-items: center;
             font-size: 140px; /* Ukuran besar agar seimbang dengan ikon 200px */
-            font-weight: small-caps;
+            font-weight: 700;
+            font-variant: small-caps;
+            line-height: 1;
             color: #fb5533;
-            margin-top: 50px; /* Warna oranye khas */
-            margin-left: 30px; /* Jarak antara ikon dan teks */
-            letter-spacing: -2px; /* Merapatkan jarak antar huruf agar mirip logo asli */
+            letter-spacing: 0;
         }
 
         /* Header Peringatan */
@@ -112,14 +117,18 @@
 
         /* Tombol */
         .btn-recover {
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             width: 100%;
+            min-height: 112px;
             background-color: #fb5533;
             color: #ffffff;
             font-size: 42px;
             font-weight: bold;
+            line-height: 1.15;
             text-align: center;
-            padding: 35px 0;
+            padding: 0 24px;
             border-radius: 25px;
             text-decoration: none;
             cursor: pointer;
