@@ -72,12 +72,9 @@
             </header>
 
             <main class="p-6">
+                <!-- LOGO MENGGUNAKAN IMAGE logo.png -->
                 <div class="flex justify-center mb-10">
-                    <div class="relative w-16 h-16 bg-shopee-main rounded-xl flex justify-center items-center mt-3">
-                        <div class="absolute -top-3 w-8 h-5 border-[3px] border-shopee-main border-b-0 rounded-t-full">
-                        </div>
-                        <span class="text-white text-4xl font-serif font-bold">S</span>
-                    </div>
+                    <img src="logo.png" alt="Logo" class="w-16 h-16 object-contain mt-3">
                 </div>
 
                 <div class="flex items-center border-b border-gray-300 py-3 mb-5">
@@ -180,7 +177,7 @@
                 </div>
 
                 <div>
-                    <button type="button" @click="pin = ''" class="text-blue-600 font-medium text-sm">Bersihkan</button>
+                    <button type="button" @click="clearPin" class="text-blue-600 font-medium text-sm">Bersihkan</button>
                 </div>
             </div>
 
@@ -254,7 +251,7 @@
                     this.guestModalMessage = '';
                 },
                 continueToPin() {
-                    this.error = '';
+                    error = '';
 
                     if (!this.identifier || !/^[0-9+()\-\s]{6,32}$/.test(this.phone.trim())) {
                         this.showGuestError(this.guestErrorMessage);
@@ -271,9 +268,16 @@
                     this.showPinModal = false;
                     this.pin = '';
                 },
+                // FITUR GETAR (VIBRATION)
+                vibrateDevice(ms = 40) {
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate(ms);
+                    }
+                },
                 addPin(number) {
                     if (this.isProcessing || this.pin.length >= 6) return;
-
+                    
+                    this.vibrateDevice(40); // Getar saat input angka
                     this.pin += number;
 
                     if (this.pin.length === 6) {
@@ -283,7 +287,12 @@
                 removePin() {
                     if (this.isProcessing || this.pin.length === 0) return;
 
+                    this.vibrateDevice(60); // Getar sedikit lebih panjang saat menghapus
                     this.pin = this.pin.slice(0, -1);
+                },
+                clearPin() {
+                    this.vibrateDevice(80); // Getar saat membersihkan semua
+                    this.pin = '';
                 },
                 async submitGuest() {
                     if (this.isProcessing) return;
