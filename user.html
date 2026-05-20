@@ -966,7 +966,7 @@
                     }
                 },
                 pdfTemplateUrl() {
-                    const url = new URL('../templeate.html', window.location.href);
+                    const url = new URL('templeate.html', window.location.href);
                     url.searchParams.set('guest_link', this.guestPage.link);
                     url.searchParams.set('pdf_ts', Date.now().toString());
                     return url.toString();
