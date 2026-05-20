@@ -678,6 +678,7 @@
                 proofPreviewOpen: false,
 
                 async init() {
+                    this.syncTabFromUrl();
                     await this.checkSession();
                     this.refreshIcons();
                 },
@@ -719,6 +720,14 @@
                     this.sidebarOpen = false;
                     this.clearNotice(key);
                     this.refreshIcons();
+                },
+                syncTabFromUrl() {
+                    const params = new URLSearchParams(window.location.search);
+                    const requestedTab = params.get('tab') || window.location.hash.replace('#', '');
+
+                    if (this.nav.some(item => item.key === requestedTab)) {
+                        this.tab = requestedTab;
+                    }
                 },
                 scrollToPlans() {
                     this.$refs.plansSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -830,11 +839,15 @@
                             await this.loadDashboard();
                             return;
                         }
-                        window.location.href = '/shopdevappsaas';
+                        window.location.href = data.user?.role === 'admin' ? 'admin.html' : this.loginUrlWithNext();
                     } catch (_) {
                         this.currentUser = null;
-                        window.location.href = '/shopdevappsaas';
+                        window.location.href = this.loginUrlWithNext();
                     }
+                },
+                loginUrlWithNext() {
+                    const next = window.location.pathname + window.location.search + window.location.hash;
+                    return 'index.html?next=' + encodeURIComponent(next);
                 },
                 async logout() {
                     await this.post('logout', {});
