@@ -19,13 +19,13 @@
 
 <body class="min-h-screen bg-zinc-100 text-zinc-900">
     <main x-data="loginPage()" x-init="init()" x-cloak class="grid min-h-screen place-items-center px-4 py-10">
-        <section class="w-full max-w-sm rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
+        <section class="w-full max-w-md rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
             <div class="mb-6">
                 <p class="text-sm font-medium text-teal-700">My SaaS</p>
-                <h1 class="mt-1 text-2xl font-semibold">Login</h1>
+                <h1 class="mt-1 text-2xl font-semibold" x-text="mode === 'register' ? 'Daftar User' : 'Login'"></h1>
             </div>
 
-            <div class="mb-5 grid grid-cols-2 gap-2 rounded-md bg-zinc-100 p-1" role="tablist" aria-label="Pilih role login">
+            <div x-show="mode === 'login'" class="mb-5 grid grid-cols-2 gap-2 rounded-md bg-zinc-100 p-1" role="tablist" aria-label="Pilih role login">
                 <button type="button" @click="setRole('user')"
                     class="inline-flex h-10 items-center justify-center gap-2 rounded-md text-sm font-semibold"
                     :class="loginForm.role === 'user' ? 'bg-white text-cyan-800 shadow-sm' : 'text-zinc-600 hover:text-zinc-900'">
@@ -40,7 +40,7 @@
                 </button>
             </div>
 
-            <form @submit.prevent="login" class="space-y-4">
+            <form x-show="mode === 'login'" @submit.prevent="login" class="space-y-4">
                 <label class="block">
                     <span class="text-sm font-medium">Username atau email</span>
                     <input x-model="loginForm.login" type="text"
@@ -65,6 +65,10 @@
                             </span>
                         </button>
                     </div>
+                    <a :href="forgotPasswordUrl" target="_blank" rel="noopener"
+                        class="mt-2 inline-flex text-sm font-medium text-teal-700 hover:text-teal-900">
+                        Lupa password?
+                    </a>
                 </label>
 
                 <button type="submit" :disabled="loading"
@@ -73,6 +77,64 @@
                     <span x-text="loading ? 'Memproses...' : 'Masuk'"></span>
                 </button>
             </form>
+
+            <form x-show="mode === 'register'" @submit.prevent="register" class="space-y-4" style="display: none;">
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <label class="block">
+                        <span class="text-sm font-medium">Nama</span>
+                        <input x-model="registerForm.name" type="text"
+                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                            autocomplete="name" required>
+                    </label>
+                    <label class="block">
+                        <span class="text-sm font-medium">Username</span>
+                        <input x-model="registerForm.username" type="text"
+                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                            autocomplete="username" required>
+                    </label>
+                </div>
+                <label class="block">
+                    <span class="text-sm font-medium">Email</span>
+                    <input x-model="registerForm.email" type="email"
+                        class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                        autocomplete="email" required>
+                </label>
+                <label class="block">
+                    <span class="text-sm font-medium">WhatsApp</span>
+                    <input x-model="registerForm.whatsapp_number" type="text"
+                        class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                        autocomplete="tel">
+                </label>
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <label class="block">
+                        <span class="text-sm font-medium">Password</span>
+                        <input x-model="registerForm.password" type="password"
+                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                            autocomplete="new-password" required>
+                    </label>
+                    <label class="block">
+                        <span class="text-sm font-medium">Konfirmasi</span>
+                        <input x-model="registerForm.password_confirmation" type="password"
+                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+                            autocomplete="new-password" required>
+                    </label>
+                </div>
+
+                <button type="submit" :disabled="loading"
+                    class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60">
+                    <i data-lucide="user-plus" class="h-4 w-4"></i>
+                    <span x-text="loading ? 'Memproses...' : 'Daftar'"></span>
+                </button>
+            </form>
+
+            <div class="mt-4 text-center text-sm text-zinc-600">
+                <button x-show="mode === 'login'" type="button" @click="setMode('register')" class="font-medium text-teal-700 hover:text-teal-900">
+                    Daftar akun user
+                </button>
+                <button x-show="mode === 'register'" type="button" @click="setMode('login')" class="font-medium text-teal-700 hover:text-teal-900" style="display: none;">
+                    Sudah punya akun? Login
+                </button>
+            </div>
 
             <div x-show="error" role="alert"
                 class="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
@@ -86,8 +148,18 @@
                 apiBase: '',
                 loading: false,
                 error: '',
+                mode: 'login',
                 showPassword: false,
+                forgotPasswordUrl: 'https://wa.me/6282217549755?text=Saya%20lupa%20password%20akun%20My%20SaaS.',
                 loginForm: { login: '', password: '', role: 'user' },
+                registerForm: {
+                    name: '',
+                    username: '',
+                    email: '',
+                    whatsapp_number: '',
+                    password: '',
+                    password_confirmation: '',
+                },
 
                 init() {
                     this.apiBase = this.resolveApiBase();
@@ -115,6 +187,13 @@
                     this.error = '';
                     this.refreshIcons();
                 },
+                setMode(mode) {
+                    this.mode = mode;
+                    this.error = '';
+                    this.loading = false;
+                    this.showPassword = false;
+                    this.refreshIcons();
+                },
                 async login() {
                     this.loading = true;
                     this.error = '';
@@ -137,6 +216,33 @@
                         window.location.href = data.user?.role === 'admin' ? 'admin.html' : 'user.html';
                     } catch (error) {
                         this.error = error.message || 'Login gagal.';
+                    } finally {
+                        this.loading = false;
+                        this.refreshIcons();
+                    }
+                },
+                async register() {
+                    this.loading = true;
+                    this.error = '';
+
+                    try {
+                        const response = await fetch(this.apiBase + 'register', {
+                            method: 'POST',
+                            credentials: 'include',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(this.registerForm),
+                        });
+                        const data = await response.json().catch(() => ({}));
+
+                        if (!response.ok || data.ok === false) {
+                            throw new Error(data.message || 'Registrasi gagal.');
+                        }
+
+                        window.location.href = 'user.html';
+                    } catch (error) {
+                        this.error = error.message || 'Registrasi gagal.';
                     } finally {
                         this.loading = false;
                         this.refreshIcons();
