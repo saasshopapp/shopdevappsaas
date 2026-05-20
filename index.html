@@ -161,7 +161,7 @@
                     password_confirmation: '',
                 },
 
-                init() {
+                async init() {
                     this.apiBase = this.resolveApiBase();
 
                     const params = new URLSearchParams(window.location.search);
@@ -170,6 +170,7 @@
                         this.loginForm.role = role;
                     }
 
+                    await this.redirectIfLoggedIn();
                     this.refreshIcons();
                 },
                 refreshIcons() {
@@ -193,6 +194,22 @@
                     this.loading = false;
                     this.showPassword = false;
                     this.refreshIcons();
+                },
+                async redirectIfLoggedIn() {
+                    try {
+                        const response = await fetch(this.apiBase + 'me', {
+                            method: 'GET',
+                            credentials: 'include',
+                        });
+                        const data = await response.json().catch(() => ({}));
+
+                        if (!response.ok || data.ok === false || !data.user?.role) {
+                            return;
+                        }
+
+                        window.location.href = data.user.role === 'admin' ? 'admin.html' : 'user.html';
+                    } catch (_) {
+                    }
                 },
                 async login() {
                     this.loading = true;
