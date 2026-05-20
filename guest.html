@@ -35,6 +35,13 @@
         * {
             -webkit-tap-highlight-color: transparent;
         }
+        
+        /* Menghilangkan panah atas/bawah bawaan input type number/tel pada beberapa browser */
+        input[type="tel"]::-webkit-outer-spin-button,
+        input[type="tel"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
     </style>
 </head>
 
@@ -77,11 +84,14 @@
                     <img src="logo.png" alt="Logo" class="w-16 h-16 object-contain mt-3">
                 </div>
 
-                <div class="flex items-center border-b border-gray-300 py-3 mb-5">
-                    <i class="fa-solid fa-mobile-screen text-gray-500 text-xl mr-3"></i>
+                <!-- WRAPPER INPUT DIUBAH (Menambahkan focus-within:border-shopee-main dan animasi transisi) -->
+                <div class="flex items-center border-b-2 border-gray-300 focus-within:border-shopee-main transition-colors duration-300 py-3 mb-5">
+                    <!-- Icon ikut berubah warna (opsional, jika tidak ingin icon berubah, hapus focus-within:text-shopee-main) -->
+                    <i class="fa-solid fa-mobile-screen text-gray-400 focus-within:text-shopee-main text-xl mr-3 transition-colors duration-300"></i>
                     <span class="text-gray-800 text-lg mr-2 font-medium">+62</span>
+                    <!-- Input dengan focus:outline-none dan focus:ring-0 untuk menghilangkan efek default browser -->
                     <input x-model="phone" @input="phone = sanitizePhone(phone)" type="tel" inputmode="tel"
-                        maxlength="32" class="flex-1 text-lg outline-none text-gray-800 bg-transparent" 
+                        maxlength="32" class="flex-1 text-lg outline-none focus:outline-none focus:ring-0 text-gray-800 bg-transparent" 
                         placeholder="Nomor Telepon">
                 </div>
 
@@ -251,7 +261,7 @@
                     this.guestModalMessage = '';
                 },
                 continueToPin() {
-                    error = '';
+                    this.error = ''; // Memperbaiki bug kecil 'error = ' pada script sebelumnya
 
                     if (!this.identifier || !/^[0-9+()\-\s]{6,32}$/.test(this.phone.trim())) {
                         this.showGuestError(this.guestErrorMessage);
