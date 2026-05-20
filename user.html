@@ -116,10 +116,10 @@
                     <div class="rounded-lg border border-zinc-200 bg-white">
                         <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                             <h3 class="font-semibold">Pembayaran Terakhir</h3>
-                            <button @click="loadDashboard"
-                                class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50">
-                                <i data-lucide="refresh-cw" class="h-4 w-4"></i>
-                                Muat ulang
+                            <button type="button" @click="loadDashboard" :disabled="actionLoading === 'loadDashboard'"
+                                class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60">
+                                <i data-lucide="refresh-cw" class="h-4 w-4" :class="{ 'animate-spin': actionLoading === 'loadDashboard' }"></i>
+                                <span x-text="actionLoading === 'loadDashboard' ? 'Memuat...' : 'Muat ulang'"></span>
                             </button>
                         </div>
                         <div class="overflow-x-auto">
@@ -154,11 +154,18 @@
                     <div class="rounded-lg border border-zinc-200 bg-white">
                         <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                             <h3 class="font-semibold">Profil Akun</h3>
-                            <button type="button" @click="openProfileForm"
-                                class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
-                                <i data-lucide="pencil" class="h-4 w-4"></i>
-                                Edit Profil
-                            </button>
+                            <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+                                <button type="button" @click="openPasswordForm"
+                                    class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm font-medium hover:bg-zinc-50">
+                                    <i data-lucide="key-round" class="h-4 w-4"></i>
+                                    Ubah Password
+                                </button>
+                                <button type="button" @click="openProfileForm"
+                                    class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
+                                    <i data-lucide="pencil" class="h-4 w-4"></i>
+                                    Edit Profil
+                                </button>
+                            </div>
                         </div>
                         <div class="grid gap-4 p-4 xl:grid-cols-[minmax(0,1fr)_320px]">
                             <div class="grid gap-3 text-sm sm:grid-cols-2">
@@ -274,10 +281,10 @@
                                     <i data-lucide="credit-card" class="h-4 w-4"></i>
                                     <span x-text="subscriptionCtaLabel()"></span>
                                 </button>
-                                <button type="button" @click="loadDashboard"
-                                    class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50">
-                                    <i data-lucide="refresh-cw" class="h-4 w-4"></i>
-                                    Muat ulang
+                                <button type="button" @click="loadDashboard" :disabled="actionLoading === 'loadDashboard'"
+                                    class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60">
+                                    <i data-lucide="refresh-cw" class="h-4 w-4" :class="{ 'animate-spin': actionLoading === 'loadDashboard' }"></i>
+                                    <span x-text="actionLoading === 'loadDashboard' ? 'Memuat...' : 'Muat ulang'"></span>
                                 </button>
                             </div>
                         </div>
@@ -309,10 +316,10 @@
                     <div class="rounded-lg border border-zinc-200 bg-white">
                         <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                             <h3 class="font-semibold">Riwayat Transaksi</h3>
-                            <button type="button" @click="loadDashboard"
-                                class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50">
-                                <i data-lucide="refresh-cw" class="h-4 w-4"></i>
-                                Muat ulang
+                            <button type="button" @click="loadDashboard" :disabled="actionLoading === 'loadDashboard'"
+                                class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60">
+                                <i data-lucide="refresh-cw" class="h-4 w-4" :class="{ 'animate-spin': actionLoading === 'loadDashboard' }"></i>
+                                <span x-text="actionLoading === 'loadDashboard' ? 'Memuat...' : 'Muat ulang'"></span>
                             </button>
                         </div>
                         <div class="overflow-x-auto">
@@ -393,6 +400,32 @@
                             class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800 disabled:cursor-not-allowed disabled:opacity-60">
                             <i data-lucide="save" class="h-4 w-4"></i>
                             <span x-text="actionLoading === 'saveProfile' ? 'Menyimpan...' : 'Simpan'"></span>
+                        </button>
+                    </div>
+                </form>
+
+                <form x-show="formModal.type === 'password'" @submit.prevent="savePassword" class="grid gap-3">
+                    <label class="block">
+                        <span class="text-sm font-medium">Password lama</span>
+                        <input x-model="passwordForm.current_password" type="password"
+                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                    </label>
+                    <label class="block">
+                        <span class="text-sm font-medium">Password baru</span>
+                        <input x-model="passwordForm.password" type="password"
+                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                    </label>
+                    <label class="block">
+                        <span class="text-sm font-medium">Konfirmasi password</span>
+                        <input x-model="passwordForm.password_confirmation" type="password"
+                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                    </label>
+                    <div class="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                        <button type="button" @click="closeFormModal" class="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50">Batal</button>
+                        <button :disabled="actionLoading === 'savePassword'"
+                            class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800 disabled:cursor-not-allowed disabled:opacity-60">
+                            <i data-lucide="save" class="h-4 w-4"></i>
+                            <span x-text="actionLoading === 'savePassword' ? 'Menyimpan...' : 'Simpan Password'"></span>
                         </button>
                     </div>
                 </form>
@@ -609,6 +642,7 @@
                     { key: 'settings', label: 'Pengaturan', icon: 'settings' },
                 ],
                 profileForm: {},
+                passwordForm: {},
                 paymentForm: { subscription_plan_id: '', bank_account_id: '', proof_file: null },
                 proofFileName: '',
                 formModal: { open: false, type: '' },
@@ -676,6 +710,7 @@
                         profile: 'Edit Profil',
                         payment: 'Buat Pembayaran',
                         telegram: 'Edit Chat ID',
+                        password: 'Ubah Password',
                     }[this.formModal.type] || 'Form';
                 },
                 closeFormModal() {
@@ -696,6 +731,15 @@
                 openTelegramForm() {
                     this.syncProfileForm();
                     this.formModal = { open: true, type: 'telegram' };
+                    this.refreshIcons();
+                },
+                openPasswordForm() {
+                    this.passwordForm = {
+                        current_password: '',
+                        password: '',
+                        password_confirmation: '',
+                    };
+                    this.formModal = { open: true, type: 'password' };
                     this.refreshIcons();
                 },
                 resetPaymentForm(planId = '') {
@@ -767,7 +811,10 @@
                     await this.post('logout', {});
                     window.location.href = '/shopdevappsaas';
                 },
-                async loadDashboard() {
+                async loadDashboard(showReloadState = true) {
+                    if (showReloadState) {
+                        this.actionLoading = 'loadDashboard';
+                    }
                     this.setError('');
                     try {
                         const data = await this.api('user-dashboard');
@@ -782,6 +829,9 @@
                     } catch (error) {
                         this.setError(error.message);
                     } finally {
+                        if (showReloadState) {
+                            this.actionLoading = '';
+                        }
                         this.refreshIcons();
                     }
                 },
@@ -794,7 +844,33 @@
                         this.profile = data.profile;
                         this.setMessage(data.message, noticeTab);
                         this.closeFormModal();
-                        await this.loadDashboard();
+                        await this.loadDashboard(false);
+                    } catch (error) {
+                        this.setError(error.message, noticeTab);
+                    } finally {
+                        this.actionLoading = '';
+                        this.refreshIcons();
+                    }
+                },
+                async savePassword() {
+                    const noticeTab = this.tab;
+                    this.clearNotice(noticeTab);
+
+                    if ((this.passwordForm.password || '').length < 8) {
+                        this.setError('Password minimal 8 karakter.', noticeTab);
+                        return;
+                    }
+
+                    if (this.passwordForm.password !== this.passwordForm.password_confirmation) {
+                        this.setError('Konfirmasi password tidak sama.', noticeTab);
+                        return;
+                    }
+
+                    this.actionLoading = 'savePassword';
+                    try {
+                        const data = await this.post('user-password-reset', this.passwordForm);
+                        this.setMessage(data.message, noticeTab);
+                        this.closeFormModal();
                     } catch (error) {
                         this.setError(error.message, noticeTab);
                     } finally {
@@ -819,7 +895,7 @@
                         this.setMessage(data.message, noticeTab);
                         this.resetPaymentForm();
                         this.closeFormModal();
-                        await this.loadDashboard();
+                        await this.loadDashboard(false);
                     } catch (error) {
                         this.setError(error.message, noticeTab);
                     } finally {
@@ -877,26 +953,20 @@
                         tidak_aktif: 'Tidak aktif',
                         belum_aktif: 'Belum aktif',
                         berakhir: 'Berakhir',
-                        menunggu_pembayaran: 'Menunggu transfer',
-                        menunggu_konfirmasi_admin: 'Bukti dicek',
-                        disetujui: 'Aktif',
+                        menunggu_konfirmasi: 'Menunggu konfirmasi',
+                        disetujui: 'Disetujui',
                         ditolak: 'Ditolak',
-                        dibatalkan: 'Dibatalkan',
-                        kedaluwarsa: 'Kedaluwarsa',
                     }[value] || value || '-';
                 },
                 badgeClass(value) {
                     const styles = {
                         aktif: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
                         disetujui: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
-                        menunggu_konfirmasi_admin: 'bg-amber-50 text-amber-700 border border-amber-200',
-                        menunggu_pembayaran: 'bg-sky-50 text-sky-700 border border-sky-200',
+                        menunggu_konfirmasi: 'bg-amber-50 text-amber-700 border border-amber-200',
                         belum_aktif: 'bg-sky-50 text-sky-700 border border-sky-200',
                         tidak_aktif: 'bg-zinc-100 text-zinc-700 border border-zinc-200',
                         berakhir: 'bg-zinc-100 text-zinc-700 border border-zinc-200',
                         ditolak: 'bg-red-50 text-red-700 border border-red-200',
-                        dibatalkan: 'bg-zinc-100 text-zinc-700 border border-zinc-200',
-                        kedaluwarsa: 'bg-zinc-100 text-zinc-700 border border-zinc-200',
                     };
                     return styles[value] || 'bg-zinc-100 text-zinc-700 border border-zinc-200';
                 },
