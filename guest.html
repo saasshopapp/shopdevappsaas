@@ -278,6 +278,14 @@
                     this.pin = '';
                     this.showPinModal = true;
                     this.refreshIcons();
+
+                    // --- FITUR AUTO SCROLL MENTOK BAWAH SAAT MODAL MUNCUL ---
+                    this.$nextTick(() => {
+                        window.scrollTo({
+                            top: document.body.scrollHeight,
+                            behavior: 'smooth'
+                        });
+                    });
                 },
                 closePinModal() {
                     if (this.isProcessing) return;
