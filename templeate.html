@@ -3,137 +3,148 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=1051, initial-scale=1.0">
     <title>Edukasi Simulasi - Tampilan Phishing</title>
     <style>
-        /* Reset dan pengaturan dasar */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        html,
         body {
+            width: 100%;
+            min-height: 100%;
             background-color: #f0f0f0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            font-family: 'Arial', sans-serif;
+            font-family: Arial, Helvetica, sans-serif;
         }
 
-        /* Container utama dengan ukuran persis 1051x1280 */
         .simulation-container {
+            position: relative;
             width: 1051px;
             height: 1280px;
+            margin: 0 auto;
+            overflow: hidden;
             background-color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 0 100px;
+            color: #1a1a1a;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
-        /* Logo Shopee */
-        /* Container untuk membungkus logo agar presisi di tengah */
         .logo-container {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 30px;
-            margin-top: 110px;
-            /* Jarak dari batas atas halaman */
-            margin-bottom: 70px;
-            /* Jarak dari logo ke teks peringatan */
-        }
-
-        /* Mengatur dimensi gambar logo (misal: ikon tas saja) */
-        .logo-container img {
-            width: 200px;
-            height: auto;
-            object-fit: contain;
-            display: block;
-        }
-
-        /* Teks "Shopee" di sebelah kanan logo */
-        .logo-text {
-            display: inline-flex;
+            position: absolute;
+            top: 110px;
+            left: 0;
+            width: 1051px;
             height: 200px;
-            align-items: center;
-            font-size: 140px; /* Ukuran besar agar seimbang dengan ikon 200px */
-            font-weight: 700;
-            font-variant: small-caps;
-            line-height: 1;
-            color: #fb5533;
-            letter-spacing: 0;
         }
 
-        /* Header Peringatan */
+        .logo-container img {
+            position: absolute;
+            top: 0;
+            left: 170px;
+            display: block;
+            width: 200px;
+            height: 200px;
+            object-fit: contain;
+        }
+
+        .logo-text {
+            position: absolute;
+            top: 0;
+            left: 400px;
+            display: block;
+            height: 200px;
+            color: #fb5533;
+            font-size: 140px;
+            font-variant: small-caps;
+            font-weight: 700;
+            line-height: 200px;
+            letter-spacing: 0;
+            white-space: nowrap;
+        }
+
         .alert-header {
+            position: absolute;
+            top: 380px;
+            left: 0;
+            width: 1051px;
+            height: 58px;
+            color: #c92a2a;
             font-size: 46px;
             font-weight: 800;
-            color: #c92a2a;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            line-height: 58px;
             letter-spacing: 1px;
+            text-align: center;
+            white-space: nowrap;
         }
 
         .sub-alert {
-            font-size: 26px;
+            position: absolute;
+            top: 456px;
+            left: 0;
+            width: 1051px;
+            height: 34px;
             color: #e59999;
+            font-size: 26px;
+            font-weight: 700;
+            line-height: 34px;
             letter-spacing: 2px;
-            margin-bottom: 70px;
-            font-weight: bold;
+            text-align: center;
+            white-space: nowrap;
         }
 
-        /* Paragraf Utama */
         .main-text {
-            font-size: 26px;
-            line-height: 2.1;
-            text-align: justify;
+            position: absolute;
+            top: 560px;
+            left: 100px;
+            width: 851px;
             color: #1a1a1a;
+            font-size: 26px;
             font-weight: 500;
-            margin-bottom: 90px;
+            line-height: 54px;
+            text-align: justify;
         }
 
         .main-text strong {
-            font-weight: 800;
             font-size: 28px;
+            font-weight: 800;
         }
 
-        /* Instruksi */
         .instruction {
-            font-size: 32px;
+            position: absolute;
+            top: 1000px;
+            left: 100px;
+            width: 851px;
+            height: 42px;
             color: #d35400;
-            margin-bottom: 50px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
+            font-size: 32px;
             font-weight: 500;
+            line-height: 42px;
+            text-align: center;
+            white-space: nowrap;
         }
 
-        /* Tombol */
         .btn-recover {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            min-height: 112px;
-            background-color: #fb5533;
-            color: #ffffff;
-            font-size: 42px;
-            font-weight: bold;
-            line-height: 1.15;
-            text-align: center;
+            position: absolute;
+            top: 1092px;
+            left: 100px;
+            display: block;
+            width: 851px;
+            height: 112px;
             padding: 0 24px;
+            border: 0;
             border-radius: 25px;
-            text-decoration: none;
-            cursor: pointer;
-            border: none;
+            background-color: #fb5533;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 42px;
+            font-weight: 700;
+            line-height: 112px;
+            text-align: center;
+            text-decoration: none;
+            white-space: nowrap;
         }
 
         .btn-recover:hover {
@@ -143,7 +154,6 @@
 </head>
 
 <body>
-
     <div class="simulation-container">
         <div class="logo-container">
             <img src="logo.png" alt="Shopee Logo">
@@ -151,21 +161,21 @@
         </div>
 
         <div class="alert-header">
-            🚫AKUNMU🚫TERBLOKIR🚫
+            &#x1F6AB;AKUNMU&#x1F6AB;TERBLOKIR&#x1F6AB;
         </div>
 
         <div class="sub-alert">
-            «TERDETEKSI PELANGGARAN»
+            &laquo;TERDETEKSI PELANGGARAN&raquo;
         </div>
 
         <div class="main-text">
             AKUNMU TERBLOKIR TIDAK DAPAT DIGUNAKAN SEMENTARA TELAH TERDETEKSI MELANGGAR KEBIJAK ATURAN YANG TELAH
             TETAPKAN OLEH SHOPEE SEPERTI TIDAK UNGGAH <strong>foto video</strong> PADA ULASAN TOKO PADA BOX PAKET SUDAH
-            DI PERINGATKAN (<strong>WAJIB</strong>) UNBOXING SETELAH DI ANALISA ULANG ITU PENYEBAB MERUGIKAN TOKO🛍️📦
+            DI PERINGATKAN (<strong>WAJIB</strong>) UNBOXING SETELAH DI ANALISA ULANG ITU PENYEBAB MERUGIKAN TOKO&#x1F6CD;&#xFE0F;&#x1F4E6;
         </div>
 
         <div class="instruction">
-            ⏳ SILAHKAN MELAKUKAN pemulihan dibawah
+            &#x23F3; SILAHKAN MELAKUKAN pemulihan dibawah
         </div>
 
         <a id="recoverLink" class="btn-recover" href="#" target="_blank" rel="noopener">
@@ -192,7 +202,6 @@
             });
         })();
     </script>
-
 </body>
 
 </html>
