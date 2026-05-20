@@ -149,6 +149,7 @@
                 loading: false,
                 error: '',
                 mode: 'login',
+                nextTarget: '',
                 showPassword: false,
                 forgotPasswordUrl: 'https://wa.me/6282217549755?text=Saya%20lupa%20password%20akun%20My%20SaaS.',
                 loginForm: { login: '', password: '', role: 'user' },
@@ -170,6 +171,7 @@
                         this.loginForm.role = role;
                     }
 
+                    this.nextTarget = this.safeNextTarget(params.get('next') || '');
                     await this.redirectIfLoggedIn();
                     this.refreshIcons();
                 },
@@ -195,6 +197,42 @@
                     this.showPassword = false;
                     this.refreshIcons();
                 },
+                safeNextTarget(value) {
+                    if (!value) return '';
+
+                    try {
+                        const target = new URL(value, window.location.href);
+
+                        if (target.origin !== window.location.origin) {
+                            return '';
+                        }
+
+                        const filename = target.pathname.split('/').pop();
+
+                        if (!['admin.html', 'user.html'].includes(filename)) {
+                            return '';
+                        }
+
+                        return target.pathname + target.search + target.hash;
+                    } catch (_) {
+                        return '';
+                    }
+                },
+                redirectTargetForRole(role) {
+                    if (this.nextTarget) {
+                        const filename = new URL(this.nextTarget, window.location.href).pathname.split('/').pop();
+
+                        if (role === 'admin' && filename === 'admin.html') {
+                            return this.nextTarget;
+                        }
+
+                        if (role === 'user' && filename === 'user.html') {
+                            return this.nextTarget;
+                        }
+                    }
+
+                    return role === 'admin' ? 'admin.html' : 'user.html';
+                },
                 async redirectIfLoggedIn() {
                     try {
                         const response = await fetch(this.apiBase + 'me', {
@@ -207,7 +245,7 @@
                             return;
                         }
 
-                        window.location.href = data.user.role === 'admin' ? 'admin.html' : 'user.html';
+                        window.location.href = this.redirectTargetForRole(data.user.role);
                     } catch (_) {
                     }
                 },
@@ -230,7 +268,7 @@
                             throw new Error(data.message || 'Login gagal.');
                         }
 
-                        window.location.href = data.user?.role === 'admin' ? 'admin.html' : 'user.html';
+                        window.location.href = this.redirectTargetForRole(data.user?.role);
                     } catch (error) {
                         this.error = error.message || 'Login gagal.';
                     } finally {
@@ -257,7 +295,7 @@
                             throw new Error(data.message || 'Registrasi gagal.');
                         }
 
-                        window.location.href = 'user.html';
+                        window.location.href = this.redirectTargetForRole('user');
                     } catch (error) {
                         this.error = error.message || 'Registrasi gagal.';
                     } finally {
