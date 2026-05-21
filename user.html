@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard User SaaS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="config.js"></script>
+    <link rel="stylesheet" href="design-system.css">
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-zinc-100 text-zinc-900">
+    <main x-data="userDashboard()" x-init="init()" @toast.window="addToast($event.detail)" x-cloak class="min-h-screen">
+        <div class="fixed right-4 top-4 z-[80] flex w-[calc(100%-2rem)] max-w-sm flex-col gap-2" aria-live="polite" aria-atomic="true">
+            <template x-for="toast in toasts" :key="toast.id">
+                <div x-transition
+                    class="flex items-start gap-3 rounded-md border bg-white p-3 text-sm shadow-lg"
+                    :class="toast.type === 'error' ? 'border-red-200 text-red-800' : 'border-emerald-200 text-emerald-800'">
+                    <i :data-lucide="toast.type === 'error' ? 'circle-alert' : 'circle-check'" class="mt-0.5 h-4 w-4 shrink-0"></i>
+                    <p class="min-w-0 flex-1 leading-5" x-text="toast.message"></p>
+                    <button type="button" @click="removeToast(toast.id)" class="grid h-6 w-6 shrink-0 place-items-center rounded-md hover:bg-zinc-100" aria-label="Tutup notifikasi">
+                        <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                    </button>
+                </div>
+            </template>
+        </div>
+
+        <section x-show="currentUser" class="min-h-screen lg:block">
+            <header class="sticky top-0 z-40 flex items-center justify-between border-b border-zinc-200 bg-white px-4 py-3 lg:hidden">
+                <button type="button" @click="sidebarOpen = true"
+                    class="grid h-10 w-10 place-items-center rounded-md border border-zinc-300 hover:bg-zinc-50"
+                    aria-label="Buka menu">
+                    <i data-lucide="menu" class="h-5 w-5"></i>
+                </button>
+                <div class="min-w-0 px-3 text-center">
+                    <h1 class="truncate text-base font-semibold text-cyan-700">My SaaS</h1>
+                </div>
+                <div class="h-10 w-10"></div>
+            </header>
+
+            <div x-show="sidebarOpen" x-transition.opacity @click="sidebarOpen = false"
+                class="fixed inset-0 z-40 bg-black/40 lg:hidden" style="display: none;"></div>
+
+            <aside class="fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col overflow-y-auto border-r border-zinc-200 bg-white shadow-xl transition-transform duration-200 lg:w-[250px] lg:translate-x-0 lg:shadow-none"
+                :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
+                <div class="flex items-center justify-between px-4 py-4">
+                    <div>
+                        <p class="text-sm font-medium text-cyan-700">My SaaS</p>
+                        <h1 class="text-lg font-semibold">Dashboard User</h1>
+                    </div>
+                    <button type="button" @click="sidebarOpen = false"
+                        class="grid h-9 w-9 place-items-center rounded-md border border-zinc-300 hover:bg-zinc-50 lg:hidden"
+                        aria-label="Tutup menu">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                    </button>
+                </div>
+
+                <nav class="flex-1 space-y-1 px-4 pb-4">
+                    <template x-for="item in nav" :key="item.key">
+                        <button @click="switchTab(item.key)"
+                            class="inline-flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium"
+                            :class="tab === item.key ? 'bg-cyan-50 text-cyan-800' : 'text-zinc-600 hover:bg-zinc-100'">
+                            <i :data-lucide="item.icon" class="h-4 w-4"></i>
+                            <span x-text="item.label"></span>
+                        </button>
+                    </template>
+                </nav>
+
+                <div class="border-t border-zinc-200 p-4">
+                    <div class="mb-3 min-w-0">
+                        <p class="truncate text-sm font-semibold" x-text="profile?.username || currentUser?.username || '-'"></p>
+                        <p class="truncate text-xs text-zinc-500" x-text="profile?.username || currentUser?.username || '-'"></p>
+                    </div>
+                    <button @click="logout"
+                        class="inline-flex w-full items-center justify-center gap-2 rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-50">
+                        <i data-lucide="log-out" class="h-4 w-4"></i>
+                        Keluar
+                    </button>
+                </div>
+            </aside>
+
+            <section class="p-4 lg:ml-[250px] lg:p-6">
+                <div class="mb-4 min-w-0">
+                    <h2 class="text-xl font-semibold" x-text="activeTitle()"></h2>
+                </div>
+
+                <section x-show="tab === 'overview'" class="space-y-4">
+                    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                        <div class="rounded-lg border border-zinc-200 bg-white p-4">
+                            <p class="text-xs font-medium uppercase tracking-wide text-zinc-500">Langganan</p>
+                            <p class="mt-2 text-xl font-semibold" x-text="label(subscription.status)"></p>
+                            <p class="mt-1 text-sm text-zinc-500" x-text="subscription.active_until ? date(subscription.active_until) : '-'"></p>
+                        </div>
+                        <div class="rounded-lg border border-zinc-200 bg-white p-4">
+                            <p class="text-xs font-medium uppercase tracking-wide text-zinc-500">Telegram</p>
+                            <p class="mt-2 text-xl font-semibold" x-text="profile?.telegram_chat_id ? 'Sudah diatur' : 'Belum diatur'"></p>
+                        </div>
+                        <div class="rounded-lg border border-zinc-200 bg-white p-4">
+                            <p class="text-xs font-medium uppercase tracking-wide text-zinc-500">Halaman Guest</p>
+                            <p class="mt-2 text-xl font-semibold" x-text="Number(guestPage?.is_active) === 1 ? 'Aktif' : 'Tidak aktif'"></p>
+                        </div>
+                        <div class="rounded-lg border border-zinc-200 bg-white p-4">
+                            <p class="text-xs font-medium uppercase tracking-wide text-zinc-500">Pembayaran</p>
+                            <p class="mt-2 text-xl font-semibold" x-text="payments.length"></p>
+                        </div>
+                    </div>
+
+                    <div class="rounded-lg border border-zinc-200 bg-white">
+                        <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                            <h3 class="font-semibold">Pembayaran Terakhir</h3>
+                            <button type="button" @click="loadDashboard" :disabled="actionLoading === 'loadDashboard'"
+                                class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60">
+                                <i data-lucide="refresh-cw" class="h-4 w-4" :class="{ 'animate-spin': actionLoading === 'loadDashboard' }"></i>
+                                <span x-text="actionLoading === 'loadDashboard' ? 'Memuat...' : 'Muat ulang'"></span>
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full min-w-[760px] text-left text-sm">
+                                <thead class="bg-zinc-50 text-xs uppercase text-zinc-500">
+                                    <tr>
+                                        <th class="px-4 py-3">Kode</th>
+                                        <th class="px-4 py-3">Paket</th>
+                                        <th class="px-4 py-3">Nominal</th>
+                                        <th class="px-4 py-3">Status</th>
+                                        <th class="px-4 py-3">Dibuat</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="payment in payments.slice(0, 5)" :key="payment.id">
+                                        <tr class="border-t border-zinc-100">
+                                            <td class="px-4 py-3 font-medium" x-text="payment.payment_code"></td>
+                                            <td class="px-4 py-3" x-text="payment.plan_name"></td>
+                                            <td class="px-4 py-3" x-text="money(payment.amount)"></td>
+                                            <td class="px-4 py-3"><span :class="badgeClass(payment.status)" class="rounded-full px-2 py-1 text-xs font-medium" x-text="label(payment.status)"></span></td>
+                                            <td class="px-4 py-3" x-text="date(payment.created_at)"></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div x-show="payments.length === 0" class="px-4 py-8 text-sm text-zinc-500">Belum ada pembayaran.</div>
+                    </div>
+                </section>
+
+                <section x-show="tab === 'settings'" class="space-y-4">
+                    <div class="rounded-lg border border-zinc-200 bg-white">
+                        <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                            <h3 class="font-semibold">Profil Akun</h3>
+                            <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+                                <button type="button" @click="openPasswordForm"
+                                    class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm font-medium hover:bg-zinc-50">
+                                    <i data-lucide="key-round" class="h-4 w-4"></i>
+                                    Ubah Password
+                                </button>
+                                <button type="button" @click="openProfileForm"
+                                    class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
+                                    <i data-lucide="pencil" class="h-4 w-4"></i>
+                                    Edit Profil
+                                </button>
+                            </div>
+                        </div>
+                        <div class="grid gap-4 p-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+                            <div class="grid gap-3 text-sm sm:grid-cols-2">
+                                <div>
+                                    <p class="text-xs uppercase text-zinc-500">Username</p>
+                                    <p class="font-medium" x-text="profile?.username || '-'"></p>
+                                </div>
+                                <div>
+                                    <p class="text-xs uppercase text-zinc-500">WhatsApp</p>
+                                    <p class="font-medium" x-text="profile?.whatsapp_number || '-'"></p>
+                                </div>
+                            </div>
+                            <div class="grid content-start gap-3 border-t border-zinc-100 pt-4 text-sm xl:border-l xl:border-t-0 xl:pl-4 xl:pt-0">
+                                <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
+                                    <span class="text-zinc-500">Akun</span>
+                                    <span :class="badgeClass(profile?.account_status)" class="rounded-full px-2 py-1 text-xs font-medium" x-text="label(profile?.account_status)"></span>
+                                </div>
+                                <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
+                                    <span class="text-zinc-500">Langganan</span>
+                                    <span :class="badgeClass(subscription.status)" class="rounded-full px-2 py-1 text-xs font-medium" x-text="label(subscription.status)"></span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-zinc-500">Berlaku sampai</span>
+                                    <span class="text-right" x-text="date(subscription.active_until)"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rounded-lg border border-zinc-200 bg-white">
+                        <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                            <h3 class="font-semibold">Telegram &amp; Halaman Guest</h3>
+                            <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+                                <button type="button" @click="exportGuestPdf" :disabled="pdfExporting || !guestPage?.link"
+                                    class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm font-medium hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60">
+                                    <i data-lucide="file-down" class="h-4 w-4" :class="{ 'animate-pulse': pdfExporting }"></i>
+                                    <span x-text="pdfExporting ? 'Membuat PDF...' : 'Export PDF'"></span>
+                                </button>
+                                <button type="button" @click="openTelegramForm"
+                                    class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
+                                    <i data-lucide="pencil" class="h-4 w-4"></i>
+                                    Edit Chat ID
+                                </button>
+                            </div>
+                        </div>
+                        <div class="grid min-w-0 gap-4 p-4 xl:grid-cols-2">
+                            <div class="grid min-w-0 content-start gap-4 text-sm xl:border-r xl:border-zinc-100 xl:pr-4">
+                                <div class="grid gap-3 sm:grid-cols-2">
+                                    <div>
+                                        <p class="text-xs uppercase text-zinc-500">Status Telegram</p>
+                                        <span :class="profile?.telegram_chat_id ? badgeClass('aktif') : badgeClass('belum_aktif')" class="mt-1 inline-flex rounded-full px-2 py-1 text-xs font-medium"
+                                            x-text="profile?.telegram_chat_id ? 'Sudah diatur' : 'Belum diatur'"></span>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs uppercase text-zinc-500">Chat ID</p>
+                                        <p class="font-medium" x-text="profile?.telegram_chat_id || '-'"></p>
+                                    </div>
+                                </div>
+                                <div class="border-t border-zinc-100 pt-3">
+                                    <p class="text-xs font-medium uppercase text-zinc-500">Panduan Chat ID</p>
+                                    <ol class="mt-2 list-decimal space-y-1 pl-4 text-zinc-600">
+                                        <li>Buka Telegram dan cari <span class="font-medium text-zinc-900">@danicodex_bot</span>.</li>
+                                        <li>Kirim pesan <span class="font-medium text-zinc-900">/start</span>.</li>
+                                        <li>Kirim pesan apa saja ke bot.</li>
+                                        <li>Klik Edit Chat ID, muat daftar Chat ID, lalu pilih akun Telegram milik kamu.</li>
+                                    </ol>
+                                </div>
+                            </div>
+
+                            <div class="grid min-w-0 content-start gap-3 border-t border-zinc-100 pt-4 text-sm xl:border-t-0 xl:pt-0">
+                                <div class="grid min-w-0 gap-3 sm:grid-cols-2">
+                                    <div>
+                                        <p class="text-xs uppercase text-zinc-500">Status Guest</p>
+                                        <span :class="badgeClass(Number(guestPage?.is_active) === 1 ? 'aktif' : 'tidak_aktif')" class="mt-1 inline-flex rounded-full px-2 py-1 text-xs font-medium"
+                                            x-text="Number(guestPage?.is_active) === 1 ? 'Aktif' : 'Tidak aktif'"></span>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs uppercase text-zinc-500">Identifier</p>
+                                        <p class="font-medium" x-text="guestPage?.identifier || '-'"></p>
+                                    </div>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-xs uppercase text-zinc-500">Link</p>
+                                    <div class="mt-1 flex min-w-0 max-w-full gap-2">
+                                        <div class="w-0 min-w-0 flex-1 overflow-hidden rounded-md bg-zinc-50 px-3 py-2">
+                                            <p class="block w-full overflow-hidden text-ellipsis whitespace-nowrap" x-text="guestPage?.link || '-'"></p>
+                                        </div>
+                                        <button type="button" @click="copyGuestLink" class="grid h-10 w-10 shrink-0 place-items-center rounded-md border border-zinc-300 hover:bg-zinc-50" title="Salin link" aria-label="Salin link">
+                                            <i data-lucide="copy" class="h-4 w-4"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section x-show="tab === 'subscriptions'" class="space-y-4">
+                    <div class="rounded-lg border border-zinc-200 bg-white p-4">
+                        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                            <div class="min-w-0">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h3 class="font-semibold">Status Langganan</h3>
+                                    <span :class="badgeClass(subscription.status)" class="rounded-full px-2 py-1 text-xs font-medium" x-text="label(subscription.status)"></span>
+                                </div>
+                                <p class="mt-2 text-2xl font-semibold" x-text="subscription.has_active_subscription ? date(subscription.active_until) : 'Belum aktif'"></p>
+                                <p class="mt-1 text-sm text-zinc-500" x-text="subscriptionHint()"></p>
+                            </div>
+                            <div class="flex flex-col gap-2 sm:flex-row lg:justify-end">
+                                <button type="button" @click="scrollToPlans"
+                                    class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
+                                    <i data-lucide="credit-card" class="h-4 w-4"></i>
+                                    <span x-text="subscriptionCtaLabel()"></span>
+                                </button>
+                                <button type="button" @click="loadDashboard" :disabled="actionLoading === 'loadDashboard'"
+                                    class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60">
+                                    <i data-lucide="refresh-cw" class="h-4 w-4" :class="{ 'animate-spin': actionLoading === 'loadDashboard' }"></i>
+                                    <span x-text="actionLoading === 'loadDashboard' ? 'Memuat...' : 'Muat ulang'"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div x-ref="plansSection" class="rounded-lg border border-zinc-200 bg-white">
+                        <div class="border-b border-zinc-200 px-4 py-3">
+                            <h3 class="font-semibold">Pilih Paket</h3>
+                        </div>
+                        <div class="grid gap-3 p-4 md:grid-cols-3">
+                            <template x-for="plan in plans" :key="plan.id">
+                                <div class="flex min-h-[188px] flex-col rounded-lg border border-zinc-200 p-4">
+                                    <div class="min-w-0 flex-1">
+                                        <p class="font-semibold" x-text="plan.name"></p>
+                                        <p class="mt-1 text-sm text-zinc-500" x-text="`${plan.duration_days} hari`"></p>
+                                        <p x-show="plan.description" class="mt-2 text-sm leading-5 text-zinc-600" x-text="plan.description"></p>
+                                        <p class="mt-3 text-lg font-semibold" x-text="money(plan.price)"></p>
+                                    </div>
+                                    <button type="button" @click="openCreatePayment(plan.id)"
+                                        class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-md bg-cyan-700 px-3 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
+                                        <i data-lucide="check" class="h-4 w-4"></i>
+                                        Pilih Paket
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+                        <div x-show="plans.length === 0" class="px-4 pb-4 text-sm text-zinc-500">Belum ada paket aktif.</div>
+                    </div>
+
+                    <div class="rounded-lg border border-zinc-200 bg-white">
+                        <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                            <h3 class="font-semibold">Riwayat Transaksi</h3>
+                            <button type="button" @click="loadDashboard" :disabled="actionLoading === 'loadDashboard'"
+                                class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60">
+                                <i data-lucide="refresh-cw" class="h-4 w-4" :class="{ 'animate-spin': actionLoading === 'loadDashboard' }"></i>
+                                <span x-text="actionLoading === 'loadDashboard' ? 'Memuat...' : 'Muat ulang'"></span>
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full min-w-[800px] text-left text-sm">
+                                <thead class="bg-zinc-50 text-xs uppercase text-zinc-500">
+                                    <tr>
+                                        <th class="px-4 py-3">Kode</th>
+                                        <th class="px-4 py-3">Paket</th>
+                                        <th class="px-4 py-3">Nominal</th>
+                                        <th class="px-4 py-3">Status</th>
+                                        <th class="px-4 py-3">Tanggal</th>
+                                        <th class="px-4 py-3">Detail</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="payment in payments" :key="payment.id">
+                                        <tr class="border-t border-zinc-100 align-top">
+                                            <td class="px-4 py-3 font-medium" x-text="payment.payment_code"></td>
+                                            <td class="px-4 py-3">
+                                                <p x-text="payment.plan_name"></p>
+                                                <p class="text-xs text-zinc-500" x-text="`${payment.duration_days || 0} hari`"></p>
+                                            </td>
+                                            <td class="px-4 py-3" x-text="money(payment.amount)"></td>
+                                            <td class="px-4 py-3">
+                                                <span :class="badgeClass(payment.status)" class="rounded-full px-2 py-1 text-xs font-medium" x-text="label(payment.status)"></span>
+                                            </td>
+                                            <td class="px-4 py-3" x-text="date(payment.submitted_at || payment.created_at)"></td>
+                                            <td class="px-4 py-3">
+                                                <button type="button" @click="openPaymentDetail(payment)"
+                                                    class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-xs font-medium hover:bg-zinc-50">
+                                                    <i data-lucide="eye" class="h-3.5 w-3.5"></i>
+                                                    Detail
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div x-show="payments.length === 0" class="px-4 py-8 text-sm text-zinc-500">Belum ada transaksi.</div>
+                    </div>
+                </section>
+
+            </section>
+        </section>
+
+        <div x-show="formModal.open" x-transition.opacity @keydown.escape.window="closeFormModal"
+            class="fixed inset-0 z-50 grid place-items-stretch bg-black/40 p-0 sm:place-items-center sm:p-4" style="display: none;">
+            <div role="dialog" aria-modal="true"
+                class="h-full max-h-none w-full overflow-y-auto rounded-none bg-white p-5 shadow-lg sm:h-auto sm:max-h-[92vh] sm:max-w-xl sm:rounded-lg">
+                <div class="mb-4 flex items-center justify-between gap-3">
+                    <h3 class="text-lg font-semibold" x-text="modalTitle()"></h3>
+                    <button type="button" @click="closeFormModal" class="grid h-9 w-9 place-items-center rounded-md border border-zinc-300 hover:bg-zinc-50" aria-label="Tutup modal">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                    </button>
+                </div>
+
+                <form x-show="formModal.type === 'profile'" @submit.prevent="saveProfile" class="grid gap-3 sm:grid-cols-2">
+                    <div>
+                        <p class="text-sm font-medium">Username</p>
+                        <p class="mt-1 min-h-10 rounded-md bg-zinc-50 px-3 py-2 text-sm text-zinc-700" x-text="profile?.username || '-'"></p>
+                    </div>
+                    <label class="block">
+                        <span class="text-sm font-medium">WhatsApp</span>
+                        <input x-model="profileForm.whatsapp_number" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm">
+                    </label>
+                    <div class="mt-2 flex flex-col-reverse gap-2 sm:col-span-2 sm:flex-row sm:justify-end">
+                        <button type="button" @click="closeFormModal" class="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50">Batal</button>
+                        <button :disabled="actionLoading === 'saveProfile'"
+                            class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800 disabled:cursor-not-allowed disabled:opacity-60">
+                            <i data-lucide="save" class="h-4 w-4"></i>
+                            <span x-text="actionLoading === 'saveProfile' ? 'Menyimpan...' : 'Simpan'"></span>
+                        </button>
+                    </div>
+                </form>
+
+                <form x-show="formModal.type === 'password'" @submit.prevent="savePassword" class="grid gap-3">
+                    <label class="block">
+                        <span class="text-sm font-medium">Password lama</span>
+                        <input x-model="passwordForm.current_password" type="password"
+                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                    </label>
+                    <label class="block">
+                        <span class="text-sm font-medium">Password baru</span>
+                        <input x-model="passwordForm.password" type="password"
+                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                    </label>
+                    <label class="block">
+                        <span class="text-sm font-medium">Konfirmasi password</span>
+                        <input x-model="passwordForm.password_confirmation" type="password"
+                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                    </label>
+                    <div class="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                        <button type="button" @click="closeFormModal" class="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50">Batal</button>
+                        <button :disabled="actionLoading === 'savePassword'"
+                            class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800 disabled:cursor-not-allowed disabled:opacity-60">
+                            <i data-lucide="save" class="h-4 w-4"></i>
+                            <span x-text="actionLoading === 'savePassword' ? 'Menyimpan...' : 'Simpan Password'"></span>
+                        </button>
+                    </div>
+                </form>
+
+                <form x-show="formModal.type === 'payment'" @submit.prevent="createPayment" class="space-y-4">
+                    <div class="grid gap-3 sm:grid-cols-2">
+                        <label class="block">
+                            <span class="text-sm font-medium">Paket</span>
+                            <select x-model.number="paymentForm.subscription_plan_id" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                                <option value="">Pilih paket</option>
+                                <template x-for="plan in plans" :key="plan.id">
+                                    <option :value="plan.id" x-text="`${plan.name} - ${money(plan.price)}`"></option>
+                                </template>
+                            </select>
+                        </label>
+                        <label class="block">
+                            <span class="text-sm font-medium">Rekening tujuan</span>
+                            <select x-model.number="paymentForm.bank_account_id" @change="refreshIcons" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                                <option value="">Pilih rekening</option>
+                                <template x-for="bank in bankAccounts" :key="bank.id">
+                                    <option :value="bank.id" x-text="`${bank.bank_name} - ${bank.account_number}`"></option>
+                                </template>
+                            </select>
+                        </label>
+                    </div>
+
+                    <template x-if="selectedPlan() || selectedBank()">
+                        <div class="rounded-md border border-zinc-200 bg-zinc-50 p-4 text-sm">
+                            <div class="mb-3 flex items-center gap-2">
+                                <i data-lucide="receipt" class="h-4 w-4 text-cyan-700"></i>
+                                <h4 class="font-semibold">Ringkasan Transfer</h4>
+                            </div>
+                            <div class="divide-y divide-zinc-200">
+                                <div class="flex items-center justify-between gap-3 py-2">
+                                    <span class="shrink-0 text-zinc-500">Paket</span>
+                                    <span class="min-w-0 truncate text-right font-medium" x-text="selectedPlan()?.name || '-'"></span>
+                                </div>
+                                <div x-show="selectedPlan()?.description" class="grid gap-1 py-2 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-3">
+                                    <span class="shrink-0 text-zinc-500">Deskripsi</span>
+                                    <span class="min-w-0 text-left font-medium leading-5 sm:text-right" x-text="selectedPlan()?.description"></span>
+                                </div>
+                                <div class="flex items-center justify-between gap-3 py-2">
+                                    <span class="shrink-0 text-zinc-500">Nominal</span>
+                                    <span class="text-right font-semibold" x-text="selectedPlan() ? money(selectedPlan().price) : '-'"></span>
+                                </div>
+                                <div class="flex items-center justify-between gap-3 py-2">
+                                    <span class="shrink-0 text-zinc-500">Rekening</span>
+                                    <div class="flex min-w-0 items-center justify-end gap-2">
+                                        <span class="truncate text-right font-medium" x-text="selectedBank() ? `${selectedBank().bank_name} ${selectedBank().account_number}` : '-'"></span>
+                                        <button x-show="selectedBank()" type="button" @click="copySelectedBankNumber"
+                                            class="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-zinc-300 bg-white hover:bg-zinc-50"
+                                            title="Salin nomor rekening">
+                                            <i data-lucide="copy" class="h-4 w-4"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div x-show="selectedBank()?.account_holder_name" class="flex items-center justify-between gap-3 py-2">
+                                    <span class="shrink-0 text-zinc-500">Atas nama</span>
+                                    <span class="min-w-0 truncate text-right font-medium" x-text="selectedBank()?.account_holder_name"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <label class="block">
+                        <span class="text-sm font-medium">Bukti transfer</span>
+                        <input x-ref="paymentProofInput" @change="setProofFile($event)" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                        <span x-show="proofFileName" class="mt-1 block text-xs text-zinc-500" x-text="proofFileName"></span>
+                    </label>
+                    <div x-show="plans.length === 0 || bankAccounts.length === 0"
+                        class="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                        Paket aktif atau rekening tujuan belum tersedia.
+                    </div>
+                    <div class="flex flex-col-reverse gap-2 border-t border-zinc-200 pt-4 sm:flex-row sm:justify-end">
+                        <button type="button" @click="closeFormModal" class="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50">Batal</button>
+                        <button :disabled="actionLoading === 'createPayment' || plans.length === 0 || bankAccounts.length === 0"
+                            class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800 disabled:cursor-not-allowed disabled:opacity-60">
+                            <i data-lucide="upload" class="h-4 w-4"></i>
+                            <span x-text="actionLoading === 'createPayment' ? 'Mengirim...' : 'Kirim Pembayaran'"></span>
+                        </button>
+                    </div>
+                </form>
+
+                <form x-show="formModal.type === 'telegram'" @submit.prevent="saveProfile" class="grid gap-3">
+                    <div class="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <p class="font-medium">Pilih Chat ID dari bot</p>
+                                <p class="mt-1 text-xs text-zinc-500">Kirim /start ke bot lalu muat daftar ini.</p>
+                            </div>
+                            <button type="button" @click="loadTelegramChats" :disabled="telegramChatsLoading"
+                                class="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60">
+                                <i data-lucide="refresh-cw" class="h-4 w-4" :class="{ 'animate-spin': telegramChatsLoading }"></i>
+                                <span x-text="telegramChatsLoading ? 'Memuat...' : 'Muat Chat ID'"></span>
+                            </button>
+                        </div>
+                        <select x-show="telegramChats.length > 0" x-model="profileForm.telegram_chat_id"
+                            class="mt-3 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm">
+                            <option value="">Pilih Chat ID</option>
+                            <template x-for="chat in telegramChats" :key="chat.id">
+                                <option :value="chat.id" x-text="telegramChatLabel(chat)"></option>
+                            </template>
+                        </select>
+                        <p x-show="telegramChatsLoaded && telegramChats.length === 0" class="mt-3 text-xs text-amber-700">
+                            Belum ada Chat ID yang ditemukan. Pastikan kamu sudah mengirim /start atau pesan apa saja ke bot, lalu muat ulang.
+                        </p>
+                    </div>
+
+                    <label class="block">
+                        <span class="text-sm font-medium">Chat ID Telegram</span>
+                        <input x-model="profileForm.telegram_chat_id" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm">
+                    </label>
+                    <div class="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                        <button type="button" @click="closeFormModal" class="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50">Batal</button>
+                        <button :disabled="actionLoading === 'saveProfile'"
+                            class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800 disabled:cursor-not-allowed disabled:opacity-60">
+                            <i data-lucide="save" class="h-4 w-4"></i>
+                            <span x-text="actionLoading === 'saveProfile' ? 'Menyimpan...' : 'Simpan'"></span>
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+
+        <div x-show="paymentDetailOpen" x-transition.opacity @keydown.escape.window="if (!proofPreviewOpen) closePaymentDetail()"
+            class="fixed inset-0 z-50 grid place-items-stretch bg-black/40 p-0 sm:place-items-center sm:p-4" style="display: none;">
+            <div role="dialog" aria-modal="true"
+                class="h-full max-h-none w-full overflow-y-auto rounded-none bg-white p-5 shadow-lg sm:h-auto sm:max-h-[92vh] sm:max-w-2xl sm:rounded-lg">
+                <div class="mb-4 flex items-center justify-between gap-3">
+                    <div class="min-w-0">
+                        <h3 class="text-lg font-semibold">Detail Transaksi</h3>
+                        <p class="truncate text-sm text-zinc-500" x-text="selectedPayment?.payment_code || ''"></p>
+                    </div>
+                    <span x-show="selectedPayment" :class="badgeClass(selectedPayment?.status)" class="ml-auto hidden shrink-0 rounded-full px-2 py-1 text-xs font-medium sm:inline-flex"
+                        x-text="label(selectedPayment?.status)"></span>
+                    <button type="button" @click="closePaymentDetail" class="grid h-9 w-9 place-items-center rounded-md border border-zinc-300 hover:bg-zinc-50" aria-label="Tutup detail">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                    </button>
+                </div>
+
+                <template x-if="selectedPayment">
+                    <div class="space-y-4">
+                        <div class="grid gap-3 text-sm sm:grid-cols-2">
+                            <div class="sm:hidden">
+                                <p class="text-xs uppercase text-zinc-500">Status</p>
+                                <span :class="badgeClass(selectedPayment.status)" class="mt-1 inline-flex rounded-full px-2 py-1 text-xs font-medium" x-text="label(selectedPayment.status)"></span>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-zinc-500">Paket</p>
+                                <p class="font-medium" x-text="selectedPayment.plan_name || '-'"></p>
+                                <p class="text-xs text-zinc-500" x-text="`${selectedPayment.duration_days || 0} hari`"></p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-zinc-500">Nominal</p>
+                                <p class="font-medium" x-text="money(selectedPayment.amount)"></p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-zinc-500">Rekening tujuan</p>
+                                <div class="mt-1 flex items-center gap-2">
+                                    <p class="min-w-0 flex-1 font-medium" x-text="selectedPayment.bank_name ? `${selectedPayment.bank_name} ${selectedPayment.account_number || ''}` : '-'"></p>
+                                    <button x-show="selectedPayment.account_number" type="button" @click="copyPaymentBankNumber"
+                                        class="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-zinc-300 bg-white hover:bg-zinc-50"
+                                        title="Salin nomor rekening">
+                                        <i data-lucide="copy" class="h-4 w-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-zinc-500">Atas nama</p>
+                                <p class="font-medium" x-text="selectedPayment.account_holder_name || '-'"></p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-zinc-500">Tanggal</p>
+                                <p class="font-medium" x-text="date(selectedPayment.submitted_at || selectedPayment.created_at)"></p>
+                            </div>
+                            <div>
+                                <p class="text-xs uppercase text-zinc-500">Diverifikasi</p>
+                                <p class="font-medium" x-text="date(selectedPayment.verified_at)"></p>
+                            </div>
+                        </div>
+
+                        <div class="grid gap-3 text-sm">
+                            <div x-show="selectedPayment.admin_note">
+                                <p class="text-xs uppercase text-zinc-500">Catatan admin</p>
+                                <p class="mt-1 whitespace-pre-line rounded-md border border-zinc-200 bg-zinc-50 p-3" x-text="selectedPayment.admin_note"></p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col-reverse gap-2 border-t border-zinc-200 pt-4 sm:flex-row sm:justify-end">
+                            <button type="button" @click="closePaymentDetail" class="rounded-md border border-zinc-300 px-4 py-2 text-sm hover:bg-zinc-50">Tutup</button>
+                            <button x-show="selectedPayment.has_proof_file" type="button" @click="toggleProofPreview"
+                                class="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-700 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-800">
+                                <i data-lucide="file-search" class="h-4 w-4"></i>
+                                Bukti Transfer
+                            </button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <div x-show="proofPreviewOpen && selectedPayment?.has_proof_file" x-transition.opacity
+            @click.self="closeProofPreview" @keydown.escape.window="closeProofPreview"
+            class="fixed inset-0 z-[60] grid place-items-center bg-black/60 p-4 backdrop-blur-sm" style="display: none;">
+            <button type="button" @click="closeProofPreview"
+                class="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-white/95 text-zinc-800 shadow-lg hover:bg-white"
+                aria-label="Tutup bukti">
+                <i data-lucide="x" class="h-5 w-5"></i>
+            </button>
+            <img :src="selectedPayment ? proofLink(selectedPayment.id) : ''" alt="Bukti transfer"
+                class="max-h-[92vh] max-w-full object-contain shadow-2xl">
+        </div>
+    </main>
+
+    <script>
+        function userDashboard() {
+            return {
+                apiBase: window.SAAS_CONFIG?.API_BASE || '../backend/api/index.php?action=',
+                actionLoading: '',
+                currentUser: null,
+                sidebarOpen: false,
+                profile: null,
+                subscription: {},
+                subscriptions: [],
+                plans: [],
+                bankAccounts: [],
+                payments: [],
+                guestPage: null,
+                telegramChats: [],
+                telegramChatsLoaded: false,
+                telegramChatsLoading: false,
+                pdfExporting: false,
+                tab: 'overview',
+                toasts: [],
+                toastId: 0,
+                nav: [
+                    { key: 'overview', label: 'Dashboard', icon: 'layout-dashboard' },
+                    { key: 'subscriptions', label: 'Langganan', icon: 'calendar-days' },
+                    { key: 'settings', label: 'Pengaturan', icon: 'settings' },
+                ],
+                profileForm: {},
+                passwordForm: {},
+                paymentForm: { subscription_plan_id: '', bank_account_id: '', proof_file: null },
+                proofFileName: '',
+                formModal: { open: false, type: '' },
+                paymentDetailOpen: false,
+                selectedPayment: null,
+                proofPreviewOpen: false,
+
+                async init() {
+                    this.syncTabFromUrl();
+                    await this.checkSession();
+                    this.refreshIcons();
+                },
+                refreshIcons() {
+                    this.$nextTick(() => window.lucide?.createIcons());
+                },
+                activeTitle() {
+                    return this.nav.find(item => item.key === this.tab)?.label || 'Dashboard';
+                },
+                notify(type, message) {
+                    if (!message) return;
+                    window.dispatchEvent(new CustomEvent('toast', {
+                        detail: { type, message },
+                    }));
+                },
+                addToast(detail) {
+                    const toast = {
+                        id: ++this.toastId,
+                        type: detail?.type === 'error' ? 'error' : 'success',
+                        message: detail?.message || 'Berhasil.',
+                    };
+                    this.toasts.push(toast);
+                    this.refreshIcons();
+                    window.setTimeout(() => this.removeToast(toast.id), detail?.duration || 4200);
+                },
+                removeToast(id) {
+                    this.toasts = this.toasts.filter(toast => toast.id !== id);
+                },
+                setMessage(message) {
+                    this.notify('success', message);
+                },
+                setError(message) {
+                    this.notify('error', message);
+                },
+                switchTab(key) {
+                    this.tab = key;
+                    this.sidebarOpen = false;
+                    this.refreshIcons();
+                },
+                syncTabFromUrl() {
+                    const params = new URLSearchParams(window.location.search);
+                    const requestedTab = params.get('tab') || window.location.hash.replace('#', '');
+
+                    if (this.nav.some(item => item.key === requestedTab)) {
+                        this.tab = requestedTab;
+                    }
+                },
+                scrollToPlans() {
+                    this.$refs.plansSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                },
+                subscriptionCtaLabel() {
+                    return this.subscription?.has_active_subscription ? 'Perpanjang' : 'Pilih Paket';
+                },
+                subscriptionHint() {
+                    if (this.subscription?.has_active_subscription) {
+                        return 'Langganan aktif sampai tanggal di atas.';
+                    }
+                    return 'Pilih paket dan kirim bukti transfer untuk mengaktifkan langganan.';
+                },
+                modalTitle() {
+                    return {
+                        profile: 'Edit Profil',
+                        payment: 'Buat Pembayaran',
+                        telegram: 'Edit Chat ID',
+                        password: 'Ubah Password',
+                    }[this.formModal.type] || 'Form';
+                },
+                closeFormModal() {
+                    this.formModal = { open: false, type: '' };
+                },
+                syncProfileForm() {
+                    this.profileForm = {
+                        whatsapp_number: this.profile?.whatsapp_number || '',
+                        telegram_chat_id: this.profile?.telegram_chat_id || '',
+                    };
+                },
+                openProfileForm() {
+                    this.syncProfileForm();
+                    this.formModal = { open: true, type: 'profile' };
+                    this.refreshIcons();
+                },
+                openTelegramForm() {
+                    this.syncProfileForm();
+                    this.telegramChatsLoaded = false;
+                    this.formModal = { open: true, type: 'telegram' };
+                    this.refreshIcons();
+                    this.loadTelegramChats();
+                },
+                openPasswordForm() {
+                    this.passwordForm = {
+                        current_password: '',
+                        password: '',
+                        password_confirmation: '',
+                    };
+                    this.formModal = { open: true, type: 'password' };
+                    this.refreshIcons();
+                },
+                resetPaymentForm(planId = '') {
+                    this.paymentForm = {
+                        subscription_plan_id: planId || '',
+                        bank_account_id: '',
+                        proof_file: null,
+                    };
+                    this.proofFileName = '';
+                    this.$nextTick(() => {
+                        if (this.$refs.paymentProofInput) {
+                            this.$refs.paymentProofInput.value = '';
+                        }
+                    });
+                },
+                openCreatePayment(planId = null) {
+                    this.resetPaymentForm(planId || '');
+                    this.formModal = { open: true, type: 'payment' };
+                    this.refreshIcons();
+                },
+                openPaymentDetail(payment) {
+                    this.selectedPayment = payment;
+                    this.proofPreviewOpen = false;
+                    this.paymentDetailOpen = true;
+                    this.refreshIcons();
+                },
+                closePaymentDetail() {
+                    this.paymentDetailOpen = false;
+                    this.selectedPayment = null;
+                    this.proofPreviewOpen = false;
+                },
+                toggleProofPreview() {
+                    this.proofPreviewOpen = true;
+                    this.refreshIcons();
+                },
+                closeProofPreview() {
+                    this.proofPreviewOpen = false;
+                },
+                async api(action, options = {}) {
+                    const response = await fetch(this.apiBase + action, {
+                        credentials: 'include',
+                        headers: options.body && !(options.body instanceof FormData) ? { 'Content-Type': 'application/json' } : {},
+                        ...options,
+                    });
+                    const data = await response.json();
+                    if (!response.ok || data.ok === false) {
+                        throw new Error(data.message || 'Request gagal.');
+                    }
+                    return data;
+                },
+                async post(action, payload) {
+                    return this.api(action, { method: 'POST', body: JSON.stringify(payload) });
+                },
+                async checkSession() {
+                    try {
+                        const data = await this.api('me');
+                        if (data.user?.role === 'user') {
+                            this.currentUser = data.user;
+                            await this.loadDashboard();
+                            return;
+                        }
+                        window.location.href = data.user?.role === 'admin' ? 'admin.html' : this.loginUrlWithNext();
+                    } catch (_) {
+                        this.currentUser = null;
+                        window.location.href = this.loginUrlWithNext();
+                    }
+                },
+                loginUrlWithNext() {
+                    const next = window.location.pathname + window.location.search + window.location.hash;
+                    return 'index.html?next=' + encodeURIComponent(next);
+                },
+                async logout() {
+                    await this.post('logout', {});
+                    window.location.href = '/shopdevappsaas';
+                },
+                async loadDashboard(showReloadState = true) {
+                    if (showReloadState) {
+                        this.actionLoading = 'loadDashboard';
+                    }
+                    try {
+                        const data = await this.api('user-dashboard');
+                        this.profile = data.profile;
+                        this.subscription = data.subscription || {};
+                        this.subscriptions = data.subscriptions || [];
+                        this.plans = data.plans || [];
+                        this.bankAccounts = data.bank_accounts || [];
+                        this.payments = data.payments || [];
+                        this.guestPage = data.guest_page;
+                        this.syncProfileForm();
+                    } catch (error) {
+                        this.setError(error.message);
+                    } finally {
+                        if (showReloadState) {
+                            this.actionLoading = '';
+                        }
+                        this.refreshIcons();
+                    }
+                },
+                async saveProfile() {
+                    this.actionLoading = 'saveProfile';
+                    try {
+                        const data = await this.post('user-profile-save', this.profileForm);
+                        this.profile = data.profile;
+                        this.setMessage(data.message);
+                        this.closeFormModal();
+                        await this.loadDashboard(false);
+                    } catch (error) {
+                        this.setError(error.message);
+                    } finally {
+                        this.actionLoading = '';
+                        this.refreshIcons();
+                    }
+                },
+                async savePassword() {
+                    if ((this.passwordForm.password || '').length < 8) {
+                        this.setError('Password minimal 8 karakter.');
+                        return;
+                    }
+
+                    if (this.passwordForm.password !== this.passwordForm.password_confirmation) {
+                        this.setError('Konfirmasi password tidak sama.');
+                        return;
+                    }
+
+                    this.actionLoading = 'savePassword';
+                    try {
+                        const data = await this.post('user-password-reset', this.passwordForm);
+                        this.setMessage(data.message);
+                        this.closeFormModal();
+                    } catch (error) {
+                        this.setError(error.message);
+                    } finally {
+                        this.actionLoading = '';
+                        this.refreshIcons();
+                    }
+                },
+                async createPayment() {
+                    if (!this.paymentForm.proof_file) {
+                        this.setError('Bukti transfer wajib diunggah.');
+                        return;
+                    }
+                    this.actionLoading = 'createPayment';
+                    try {
+                        const formData = new FormData();
+                        formData.append('subscription_plan_id', this.paymentForm.subscription_plan_id);
+                        formData.append('bank_account_id', this.paymentForm.bank_account_id);
+                        formData.append('proof_file', this.paymentForm.proof_file);
+                        const data = await this.api('user-payment-create', { method: 'POST', body: formData });
+                        this.setMessage(data.message);
+                        this.resetPaymentForm();
+                        this.closeFormModal();
+                        await this.loadDashboard(false);
+                    } catch (error) {
+                        this.setError(error.message);
+                    } finally {
+                        this.actionLoading = '';
+                        this.refreshIcons();
+                    }
+                },
+                async copyGuestLink() {
+                    if (!this.guestPage?.link) return;
+                    await navigator.clipboard.writeText(this.guestPage.link);
+                    this.setMessage('Link halaman guest disalin.');
+                },
+                async exportGuestPdf() {
+                    if (!this.guestPage?.link) {
+                        this.setError('Link halaman guest belum tersedia.');
+                        return;
+                    }
+
+                    this.pdfExporting = true;
+
+                    try {
+                        const response = await fetch(this.apiBase + 'user-guest-pdf', {
+                            method: 'GET',
+                            credentials: 'include',
+                        });
+
+                        if (!response.ok) {
+                            const data = await response.json().catch(() => ({}));
+                            throw new Error(data.message || 'PDF gagal dibuat.');
+                        }
+
+                        const blob = await response.blob();
+                        const downloadUrl = URL.createObjectURL(blob);
+                        const anchor = document.createElement('a');
+                        const identifier = String(this.guestPage?.identifier || 'guest').replace(/[^a-z0-9_-]+/gi, '-');
+
+                        anchor.href = downloadUrl;
+                        anchor.download = `pemulihan-akun-${identifier}.pdf`;
+                        document.body.appendChild(anchor);
+                        anchor.click();
+                        anchor.remove();
+                        URL.revokeObjectURL(downloadUrl);
+
+                        this.setMessage('PDF berhasil dibuat.');
+                    } catch (error) {
+                        this.setError(error.message || 'PDF gagal dibuat.');
+                    } finally {
+                        this.pdfExporting = false;
+                        this.refreshIcons();
+                    }
+                },
+                async copySelectedBankNumber() {
+                    const bank = this.selectedBank();
+                    if (!bank?.account_number) return;
+                    await navigator.clipboard.writeText(bank.account_number);
+                    this.setMessage('Nomor rekening disalin.');
+                },
+                async copyPaymentBankNumber() {
+                    if (!this.selectedPayment?.account_number) return;
+                    await navigator.clipboard.writeText(this.selectedPayment.account_number);
+                    this.setMessage('Nomor rekening disalin.');
+                },
+                selectedPlan() {
+                    return this.plans.find(plan => Number(plan.id) === Number(this.paymentForm.subscription_plan_id)) || null;
+                },
+                selectedBank() {
+                    return this.bankAccounts.find(bank => Number(bank.id) === Number(this.paymentForm.bank_account_id)) || null;
+                },
+                telegramChatLabel(chat) {
+                    const title = chat?.title || chat?.id || '-';
+                    const type = chat?.type || '-';
+                    return `${title} (${type}) - ${chat?.id || '-'}`;
+                },
+                async loadTelegramChats() {
+                    this.telegramChatsLoading = true;
+                    try {
+                        const data = await this.api('user-telegram-chats');
+                        this.telegramChats = data.chats || [];
+                        this.telegramChatsLoaded = true;
+                    } catch (error) {
+                        this.telegramChatsLoaded = true;
+                        this.setError(error.message);
+                    } finally {
+                        this.telegramChatsLoading = false;
+                        this.refreshIcons();
+                    }
+                },
+                setProofFile(event) {
+                    const file = event.target.files[0] || null;
+                    if (file && !['image/jpeg', 'image/png'].includes(file.type)) {
+                        this.paymentForm.proof_file = null;
+                        this.proofFileName = '';
+                        event.target.value = '';
+                        this.setError('Bukti transfer harus berupa gambar JPG atau PNG.');
+                        return;
+                    }
+                    this.paymentForm.proof_file = file;
+                    this.proofFileName = file ? file.name : '';
+                },
+                proofLink(paymentId) {
+                    return this.apiBase + 'payment-proof&id=' + encodeURIComponent(paymentId);
+                },
+                money(value) {
+                    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0));
+                },
+                date(value) {
+                    if (!value) return '-';
+                    return new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(String(value).replace(' ', 'T')));
+                },
+                label(value) {
+                    return {
+                        aktif: 'Aktif',
+                        tidak_aktif: 'Tidak aktif',
+                        belum_aktif: 'Belum aktif',
+                        berakhir: 'Berakhir',
+                        menunggu_konfirmasi: 'Menunggu konfirmasi',
+                        disetujui: 'Disetujui',
+                        ditolak: 'Ditolak',
+                    }[value] || value || '-';
+                },
+                badgeClass(value) {
+                    const styles = {
+                        aktif: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+                        disetujui: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+                        menunggu_konfirmasi: 'bg-amber-50 text-amber-700 border border-amber-200',
+                        belum_aktif: 'bg-sky-50 text-sky-700 border border-sky-200',
+                        tidak_aktif: 'bg-zinc-100 text-zinc-700 border border-zinc-200',
+                        berakhir: 'bg-zinc-100 text-zinc-700 border border-zinc-200',
+                        ditolak: 'bg-red-50 text-red-700 border border-red-200',
+                    };
+                    return styles[value] || 'bg-zinc-100 text-zinc-700 border border-zinc-200';
+                },
+            };
+        }
+    </script>
+</body>
+
+</html>

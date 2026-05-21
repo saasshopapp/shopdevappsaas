@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tampilan Panduan Pemulihan Akun - Responsive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="config.js"></script>
+    <style>
+        [x-cloak] { display: none !important; }
+        * { -webkit-tap-highlight-color: transparent; }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4 antialiased font-sans">
+
+    <main
+        x-data="guestGuidePage()" x-init="init()" x-cloak
+        class="bg-white w-full max-w-md sm:max-w-lg md:max-w-xl p-4 sm:p-6 md:p-8 rounded-2xl shadow-sm sm:shadow-md md:shadow-lg text-[#006666]">
+
+        <header class="mb-6 sm:mb-8">
+            <p class="font-bold text-sm sm:text-base md:text-lg leading-relaxed text-justify">
+                <span class="inline-block mr-1">✪</span>
+                Berikut cara pemulihan akun agar limit yg tersedia saat ini tidak hangus atau di non aktif kan (wajib)
+                melakukan pengosongan limit spinjam & spaylater
+                <span class="inline-block ml-1">✪</span>
+            </p>
+        </header>
+
+        <section class="space-y-3 sm:space-y-4 font-bold text-sm sm:text-base md:text-lg mb-8 sm:mb-10">
+            <p># 1 Pilih. Tab Saya</p>
+            <p># 2 Pilih. S.PINJAM</p>
+            <p># 3 Pilih. Cairkan</p>
+            <p class="leading-relaxed">
+                # 4 Pilih Jangka waktu. bebas pilih karna bukan meminjam lalu tekan Ajukan Pinjam
+            </p>
+            <p># 5 Pilih bank penerima</p>
+            <p># 6 Pilih. SETUJU LANJUT</p>
+            <p># 7 Pilih. Verifikasi</p>
+        </section>
+
+        <div class="flex justify-center mb-8 sm:mb-10">
+            <button
+                type="button"
+                @click="openSupportWhatsapp"
+                :disabled="loading"
+                class="bg-[#FF5700] text-white font-bold text-base sm:text-lg px-8 py-3.5 rounded-xl shadow-[0_4px_14px_rgba(255,87,0,0.35)] hover:bg-[#e04e00] active:scale-95 transition-all duration-200 w-full max-w-xs sm:max-w-sm">
+                <span x-text="loading ? 'Memuat CS Shopee...' : 'Hubungi CS Shopee'"></span>
+            </button>
+        </div>
+
+        <div x-show="error" role="alert"
+            class="mb-6 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs sm:text-sm text-red-700"
+            x-text="error"></div>
+
+        <footer class="border-l-[4px] sm:border-l-[5px] border-[#FFC107] pl-3 sm:pl-4 py-1 text-justify">
+            <p class="text-[#FFC107] font-bold text-sm sm:text-base flex items-center mb-1.5">
+                <span class="mr-1">⚠️</span> Catatan
+            </p>
+            <p class="text-[#006666] text-xs sm:text-sm md:text-base leading-relaxed font-medium opacity-95">
+                Anda bukan melakukan pinjaman hanya pengosongan limit yg tersedia saja dan ketika pencairan selesai anda
+                hanya perlu melakukan pengembalian ke Shopee-Pay anda sendiri limit akan kembali normal Atau bisa
+                hubungi (Customer Service Shopee)
+            </p>
+        </footer>
+
+    </main>
+
+    <script>
+        function guestGuidePage() {
+            return {
+                apiBase: window.SAAS_CONFIG?.API_BASE || '../backend/api/index.php?action=',
+                identifier: '',
+                supportWhatsapp: '',
+                whatsappLink: '',
+                error: '',
+                loading: false,
+
+                init() {
+                    const params = new URLSearchParams(window.location.search);
+                    this.identifier = (params.get('identifier') || '').trim();
+
+                    if (!this.identifier) {
+                        this.error = 'Data halaman tidak valid.';
+                        return;
+                    }
+
+                    this.loadGuestInfo();
+                },
+                async loadGuestInfo() {
+                    this.loading = true;
+                    this.error = '';
+
+                    try {
+                        const response = await fetch(this.apiBase + 'guest-info&identifier=' + encodeURIComponent(this.identifier), {
+                            method: 'GET',
+                            credentials: 'include',
+                        });
+                        const data = await response.json().catch(() => ({}));
+
+                        if (!response.ok || data.ok === false) {
+                            throw new Error(data.message || 'Data CS tidak dapat dimuat.');
+                        }
+
+                        this.supportWhatsapp = data.guest?.support_whatsapp || '';
+                        this.whatsappLink = this.buildWhatsappLink(this.supportWhatsapp);
+                    } catch (error) {
+                        this.error = error.message || 'Data CS tidak dapat dimuat.';
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                normalizeWhatsapp(value) {
+                    let digits = String(value || '').replace(/\D+/g, '');
+
+                    if (!digits) return '';
+
+                    if (digits.startsWith('0')) {
+                        digits = '62' + digits.slice(1);
+                    }
+
+                    return digits;
+                },
+                buildWhatsappLink(value) {
+                    const target = this.normalizeWhatsapp(value);
+
+                    if (!target) return '';
+
+                    const message = encodeURIComponent('Halo Admin, saya ingin meminta bantuan terkait pengosongan limit saya.');
+
+                    return `https://wa.me/${target}?text=${message}`;
+                },
+                openSupportWhatsapp() {
+                    if (!this.whatsappLink) {
+                        this.error = 'Nomor WhatsApp CS belum tersedia.';
+                        return;
+                    }
+
+                    window.open(this.whatsappLink, '_blank');
+                },
+            };
+        }
+    </script>
+</body>
+
+</html>
