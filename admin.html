@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin SaaS</title>
+    <title>Admin DangkerWebP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -41,7 +41,7 @@
                     <i data-lucide="menu" class="h-5 w-5"></i>
                 </button>
                 <div class="min-w-0 px-3 text-center">
-                    <h1 class="truncate text-base font-semibold text-teal-700">My SaaS</h1>
+                    <h1 class="truncate text-base font-semibold text-teal-700">DangkerWebP</h1>
                 </div>
                 <div class="h-10 w-10"></div>
             </header>
@@ -53,7 +53,7 @@
                 :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
                 <div class="flex items-center justify-between px-4 py-4">
                     <div>
-                        <p class="text-sm font-medium text-teal-700">My SaaS</p>
+                        <p class="text-sm font-medium text-teal-700">DangkerWebP</p>
                         <h1 class="text-lg font-semibold">Admin</h1>
                     </div>
                     <button type="button" @click="sidebarOpen = false"
@@ -181,7 +181,7 @@
                                             <td class="px-4 py-3">
                                                 <span :class="badgeClass(user.account_status)" class="rounded-full px-2 py-1 text-xs font-medium" x-text="label(user.account_status)"></span>
                                                 <p class="mt-2 text-xs text-zinc-500" x-text="`Langganan: ${label(user.subscription_status || 'belum_aktif')}`"></p>
-                                                <p class="text-xs text-zinc-500" x-text="date(user.subscription_ended_at)"></p>
+                                                <p class="text-xs text-zinc-500" x-text="subscriptionRemainingLabel(user)"></p>
                                             </td>
                                             <td class="px-4 py-3">
                                                 <p x-text="Number(user.telegram_configured) === 1 ? 'Telegram diatur' : 'Telegram belum'"></p>
@@ -1080,6 +1080,25 @@
                 },
                 money(value) {
                     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0));
+                },
+                daysRemaining(value) {
+                    if (!value) return null;
+                    const endDate = new Date(String(value).replace(' ', 'T'));
+                    if (Number.isNaN(endDate.getTime())) return null;
+
+                    const diff = endDate.getTime() - Date.now();
+                    return diff <= 0 ? 0 : Math.ceil(diff / 86400000);
+                },
+                remainingDaysLabel(value) {
+                    const days = this.daysRemaining(value);
+                    if (days === null) return '-';
+                    return `${days} hari tersisa`;
+                },
+                subscriptionRemainingLabel(user) {
+                    if ((user?.subscription_status || 'belum_aktif') !== 'aktif') {
+                        return '-';
+                    }
+                    return this.remainingDaysLabel(user?.subscription_ended_at);
                 },
                 date(value) {
                     if (!value) return '-';
