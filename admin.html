@@ -433,19 +433,47 @@
                 </form>
 
                 <form x-show="formModal.type === 'plan'" @submit.prevent="savePlan" class="grid gap-3 sm:grid-cols-2">
-                    <label class="block sm:col-span-2">
-                        <span class="text-sm font-medium">Nama paket</span>
-                        <input x-model="planForm.name" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
-                    </label>
-                    <label class="block">
-                        <span class="text-sm font-medium">Durasi</span>
-                        <select x-model="planForm.duration_type" @change="syncPlanDuration"
-                            class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm">
-                            <option value="weekly_1">1 minggu</option>
-                            <option value="weekly_2">2 minggu</option>
-                            <option value="monthly_1">1 bulan</option>
-                        </select>
-                    </label>
+                    <template x-if="planForm.id">
+                        <div class="grid gap-3 sm:col-span-2 sm:grid-cols-2">
+                            <div class="rounded-md border border-zinc-200 bg-zinc-50 p-3">
+                                <p class="text-xs uppercase text-zinc-500">Nama paket</p>
+                                <p class="mt-1 font-medium" x-text="planForm.name || '-'"></p>
+                            </div>
+                            <div class="rounded-md border border-zinc-200 bg-zinc-50 p-3">
+                                <p class="text-xs uppercase text-zinc-500">Durasi</p>
+                                <p class="mt-1 font-medium" x-text="durationLabel(planForm)"></p>
+                            </div>
+                        </div>
+                    </template>
+                    <template x-if="!planForm.id">
+                        <label class="block sm:col-span-2">
+                            <span class="text-sm font-medium">Nama paket</span>
+                            <input x-model="planForm.name" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                        </label>
+                    </template>
+                    <template x-if="!planForm.id">
+                        <div class="grid gap-3 sm:col-span-2 sm:grid-cols-2">
+                            <label class="block">
+                                <span class="text-sm font-medium">Durasi</span>
+                                <select x-model="planForm.duration_type" @change="syncPlanDuration"
+                                    class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm">
+                                    <option value="weekly_1">1 minggu</option>
+                                    <option value="weekly_2">2 minggu</option>
+                                    <option value="monthly_1">1 bulan</option>
+                                    <option value="monthly_2">2 bulan</option>
+                                    <option value="monthly_3">3 bulan</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+                            </label>
+                            <template x-if="planForm.duration_type === 'custom'">
+                                <label class="block">
+                                    <span class="text-sm font-medium">Durasi custom</span>
+                                    <input x-model.number="planForm.duration_days" type="number" min="1" max="365" step="1"
+                                        class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" required>
+                                </label>
+                            </template>
+                        </div>
+                    </template>
                     <label class="block">
                         <span class="text-sm font-medium">Harga</span>
                         <input x-model.number="planForm.price" type="number" min="0" step="1000"
@@ -455,7 +483,7 @@
                         <span class="text-sm font-medium">Deskripsi</span>
                         <textarea x-model="planForm.description" rows="3" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"></textarea>
                     </label>
-                    <label class="inline-flex items-center gap-2 text-sm sm:col-span-2">
+                    <label x-show="!planForm.id" class="inline-flex items-center gap-2 text-sm sm:col-span-2">
                         <input x-model="planForm.is_active" type="checkbox" class="rounded border-zinc-300 text-teal-700">
                         Aktif
                     </label>
@@ -730,9 +758,36 @@
                     this.formModal = { open: false, type: '' };
                 },
                 durationDays(type) {
-                    return { weekly_1: 7, weekly_2: 14, monthly_1: 30 }[type] || 7;
+                    return {
+                        weekly_1: 7,
+                        weekly_2: 14,
+                        monthly_1: 30,
+                        monthly_2: 60,
+                        monthly_3: 90,
+                    }[type] || 1;
+                },
+                durationLabel(plan) {
+                    const labels = {
+                        weekly_1: '1 minggu',
+                        weekly_2: '2 minggu',
+                        monthly_1: '1 bulan',
+                        monthly_2: '2 bulan',
+                        monthly_3: '3 bulan',
+                        custom: 'Custom',
+                    };
+                    const days = Number(plan?.duration_days || 0);
+                    const label = labels[plan?.duration_type] || 'Custom';
+
+                    return days > 0 ? `${label} (${days} hari)` : label;
                 },
                 syncPlanDuration() {
+                    if (this.planForm.duration_type === 'custom') {
+                        if (!Number(this.planForm.duration_days)) {
+                            this.planForm.duration_days = 1;
+                        }
+                        return;
+                    }
+
                     this.planForm.duration_days = this.durationDays(this.planForm.duration_type);
                 },
                 openUserForm() {
@@ -948,8 +1003,31 @@
                 async savePlan() {
                     this.actionLoading = 'savePlan';
                     try {
-                        this.syncPlanDuration();
-                        const data = await this.post('admin-plan-save', this.planForm);
+                        let payload = {
+                            id: this.planForm.id,
+                            price: this.planForm.price,
+                            description: this.planForm.description,
+                        };
+
+                        if (!this.planForm.id) {
+                            this.syncPlanDuration();
+
+                            const durationDays = Number(this.planForm.duration_days || 0);
+                            if (durationDays < 1 || durationDays > 365) {
+                                this.setError('Durasi custom harus antara 1 sampai 365 hari.');
+                                return;
+                            }
+
+                            payload = {
+                                ...payload,
+                                name: this.planForm.name,
+                                duration_type: this.planForm.duration_type,
+                                duration_days: durationDays,
+                                is_active: this.planForm.is_active,
+                            };
+                        }
+
+                        const data = await this.post('admin-plan-save', payload);
                         this.setMessage(data.message);
                         this.closeFormModal();
                         await this.loadAll();
